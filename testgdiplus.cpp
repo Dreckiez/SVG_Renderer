@@ -48,14 +48,16 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     Shapes::Polygon PG;
                     PG.ReadPolygon(root);
                     PG.DrawPG(&graphics);
-                    // PG.GetCoords();
-                    // PG.GetColor();
-                    // PG.GetStroke();
                 }
-                else if(name == "polyline"){
+                else if (name == "polyline"){
                     Shapes::Polyline PL;
-                    PL.ReadPolyLine(root);
+                    PL.ReadPolyline(root);
                     PL.DrawPL(&graphics);
+                }
+                else if (name == "text"){
+                    Shapes::Text T;
+                    T.ReadText(root);
+                    T.DrawT(&graphics);
                 }
             }
             

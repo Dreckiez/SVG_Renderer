@@ -100,7 +100,6 @@ namespace Shapes{
     public:
         Polygon();
         void ReadPolygon(XMLElement* PG);
-        void GetCoords();
         void DrawPG(Graphics* g);
     };
 
@@ -109,8 +108,19 @@ namespace Shapes{
         vector<Point> Points;
     public:
         Polyline();
-        void ReadPolyLine(XMLElement* PL);
+        void ReadPolyline(XMLElement* PL);
         void DrawPL(Graphics* g);
+    };
+
+    class Text:Object{
+    private:
+        Point top;
+        float font_size;
+        string text;
+    public:
+        Text();
+        void ReadText(XMLElement* T);
+        void DrawT(Graphics* g);
     };
 }
 

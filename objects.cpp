@@ -3,6 +3,7 @@
 #include<vector>
 #include<cstring>
 #include<sstream>
+#include<wchar.h>
 #include<windows.h>
 #include<gdiplus.h>
 #include "objects.h"
@@ -161,8 +162,8 @@ void Shapes::Rectangle::DrawR(Graphics* g){
     SolidBrush b(Color((unsigned char)color.GetAlpha(), (unsigned char)color.GetRed(), (unsigned char)color.GetGreen(), (unsigned char)color.GetBlue())); */
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    g->DrawRectangle(&p, A.GetX(), A.GetY(), width, height);
     g->FillRectangle(&b, A.GetX(), A.GetY(), width, height);
+    g->DrawRectangle(&p, A.GetX(), A.GetY(), width, height);
 }
 
 
@@ -219,8 +220,8 @@ void Shapes::Circle::ReadCircle(XMLElement* C){
 void Shapes::Circle::DrawC(Graphics* g){
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    g->DrawEllipse(&p, center.GetX()-radius-stroke_width/2, center.GetY()-radius-stroke_width/2, radius*2+stroke_width, radius*2+stroke_width);
     g->FillEllipse(&b, center.GetX()-radius, center.GetY()-radius, radius*2, radius*2);
+    g->DrawEllipse(&p, center.GetX()-radius, center.GetY()-radius, radius*2, radius*2);
 }
 
 Shapes::Ellipse::Ellipse(){
@@ -253,8 +254,8 @@ void Shapes::Ellipse::ReadEllipse(XMLElement* E){
 void Shapes::Ellipse::DrawE(Graphics* g){
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    g->DrawEllipse(&p, center.GetX()-radius_x-stroke_width/2, center.GetY()-radius_y-stroke_width/2, radius_x*2+stroke_width, radius_y*2+stroke_width);
     g->FillEllipse(&b, center.GetX()-radius_x, center.GetY()-radius_y, radius_x*2, radius_y*2);
+    g->DrawEllipse(&p, center.GetX()-radius_x, center.GetY()-radius_y, radius_x*2, radius_y*2);
 }
 
 Shapes::Polygon::Polygon(){
@@ -272,7 +273,7 @@ void Shapes::Polygon::ReadPolygon(XMLElement* PG){
         getline(sss, a, ',');
         getline(sss, b);
         Points.push_back({(float) atof(a.c_str()), (float) atof(b.c_str())});
-    } 
+    }
 
     const char* C = PG->Attribute("fill");
     const char* S = PG->Attribute("stroke"); 
@@ -292,28 +293,20 @@ void Shapes::Polygon::ReadPolygon(XMLElement* PG){
 void Shapes::Polygon::DrawPG(Graphics* g){
     vector<PointF> list;
     for (int i = 0; i < Points.size(); i++){
-        list[i].X = Points[i].GetX();
-        list[i].Y = Points[i].GetY();
-        cout << list[i].X << ' ' << list[i].Y << '\n';
+        list.push_back({Points[i].GetX(), Points[i].GetY()});
     }
-    /* Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
+    Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
 
+    g->FillPolygon(&b, list.data(), static_cast<int> (Points.size()));
     g->DrawPolygon(&p, list.data(), static_cast<int> (Points.size()));
-    g->FillPolygon(&b, list.data(), static_cast<int> (Points.size())); */
-}
-
-void Shapes::Polygon::GetCoords(){
-    for (int i = 0; i < Points.size(); i++){
-        cout << Points[i].GetX() << ' ' << Points[i].GetY() << '\n';
-    }
 }
 
 Shapes::Polyline::Polyline(){
     cout << "PolyLine constructed\n";
 }
 
-void Shapes::Polyline::ReadPolyLine(XMLElement* PL){
+void Shapes::Polyline::ReadPolyline(XMLElement* PL){
     stringstream ss(PL->Attribute("points"));
 
     string tmp;
@@ -343,36 +336,58 @@ void Shapes::Polyline::ReadPolyLine(XMLElement* PL){
 void Shapes::Polyline::DrawPL(Graphics* g){
     vector <PointF> pF;
     int size = Points.size();
-    Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
     for (int i = 0; i < size; i++){
         PointF pTemp(Points[i].GetX(), Points[i].GetY());
         pF.push_back(pTemp);
     }
-    if (stroke_width != 0) {
-        Pen p(Color(stroke.GetAlpha() * 255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
-        g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
-    }
+
+    Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
+
     g->FillPolygon(&b, pF.data(), static_cast<int> (pF.size()));
+
+    if (stroke_width != 0) g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
 }
 
-// void Shapes::Polyline::DrawPL(Graphics* g) {
-//     vector<PointF> pF;
-//     int size = Points.size();
+Shapes::Text::Text(){
+    top.SetPoint(0,0);
+    font_size = 0;
+    text = "";
+    cout << "Text constructor" << endl;
+}
 
-//     // Chuyển đổi các điểm từ Points sang PointF và thêm vào vector pF
-//     for (int i = 0; i < size; i++) {
-//         PointF pTemp(Points[i].GetX(), Points[i].GetY());
-//         pF.push_back(pTemp);
-//     }
+void Shapes::Text::ReadText(XMLElement* T){
+    top.SetX(T->FloatAttribute("x"));
+    top.SetY(T->FloatAttribute("y"));
+    font_size = T->FloatAttribute("font-size");
 
-//     // Kiểm tra nếu stroke được khởi tạo (giả sử alpha = 0 có nghĩa là không khởi tạo)
-//     if (stroke.GetAlpha() > 0) {
-//         Pen p(Color(stroke.GetAlpha() * 255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
-//         g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
-//     }
+    const char* t = T->GetText();
 
-//     // Tạo brush để tô màu cho hình và tô nếu có
-//     SolidBrush b(Color(color.GetAlpha() * 255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-//     g->FillPolygon(&b, pF.data(), static_cast<int>(pF.size()));
-// }
+    top.SetY(top.GetY()-font_size);
+    font_size /= float(4.0 / 3.0);
+
+    const char* C = T->Attribute("fill");
+    if (C != nullptr){
+        string tmp = C;
+        SetColor(tmp);
+    }
+
+    if (t){
+        text = t;
+    }
+}
+
+void Shapes::Text::DrawT(Graphics *g){
+    SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
+    Font TNR(L"Times New Roman", int(font_size));
+
+    size_t size_needed = mbstowcs(nullptr, text.c_str(), 0);
+    if (size_needed == static_cast<size_t>(-1)) {
+        std::wcerr << L"Error converting string to wide string." << endl;
+        return;
+    }
+    wstring wstr(size_needed, L'\0');
+    mbstowcs(&wstr[0], text.c_str(), size_needed);
+
+    g->DrawString(wstr.c_str(), -1, &TNR, {top.GetX(), top.GetY()}, &b);
+}
