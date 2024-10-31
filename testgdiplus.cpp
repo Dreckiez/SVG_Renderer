@@ -51,6 +51,10 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     // PG.GetCoords();
                     // PG.GetColor();
                     // PG.GetStroke();
+                }else if (name == "text"){
+                    Shapes::Text T;
+                    T.ReadText(root);
+                    T.DrawT(&graphics);
                 }
             }
             
@@ -93,6 +97,6 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
     }
 
     GdiplusShutdown(gdiToken);
-
+    system("pause");
     return 0;
 }

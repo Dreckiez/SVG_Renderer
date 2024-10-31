@@ -3,6 +3,7 @@
 #include<vector>
 #include<cstring>
 #include<sstream>
+#include <wchar.h>
 #include<windows.h>
 #include<gdiplus.h>
 #include "objects.h"
@@ -307,4 +308,51 @@ void Shapes::Polygon::GetCoords(){
     for (int i = 0; i < Points.size(); i++){
         cout << Points[i].GetX() << ' ' << Points[i].GetY() << '\n';
     }
+}
+
+Shapes::Text::Text(){
+    top.X = 0;
+    top.Y = 0;
+    font = 10;
+    cout << "Text constructor" << endl;
+}
+
+void Shapes::Text::ReadText(XMLElement* T){
+    top.X = T->FloatAttribute("x");
+    top.Y = T->FloatAttribute("y");
+    font = T->FloatAttribute("font-size");
+
+    const char* t = T->GetText();
+
+    top.Y -= font;
+    font /= float(4.0 / 3.0);
+    cout << font << " " << top.X << " " << top.Y << endl;
+    cout << font << " " << top.X << " " << top.Y << endl;
+    const char* C = T->Attribute("fill");
+    if (C != nullptr){
+        string tmp = C;
+        SetColor(tmp);
+    }
+    if (t){
+        text = t;
+    }
+    cout << "Read text" << endl;
+}
+
+void Shapes::Text::DrawT(Graphics *g){
+    SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
+    Font TNR(L"Times New Roman", int(font));
+    // format.SetAlignment(StringAlignmentCenter);   // Center horizontally
+    // format.SetLineAlignment(StringAlignmentCenter); // Center vertically
+
+   size_t size_needed = mbstowcs(nullptr, text.c_str(), 0);
+    if (size_needed == static_cast<size_t>(-1)) {
+        std::wcerr << L"Error converting string to wide string." << endl;
+        return;
+    }
+    wstring wstr(size_needed, L'\0');
+    mbstowcs(&wstr[0], text.c_str(), size_needed);
+    cout << "Point: " << top.X << " " << top.Y << endl;
+    g->DrawString(wstr.c_str(), -1, &TNR, top, &b);
+    cout << "Draw string called" << endl;
 }
