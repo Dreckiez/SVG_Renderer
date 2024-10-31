@@ -3,7 +3,6 @@
 #include<vector>
 #include<cstring>
 #include<sstream>
-#include <wchar.h>
 #include<windows.h>
 #include<gdiplus.h>
 #include "objects.h"
@@ -310,49 +309,70 @@ void Shapes::Polygon::GetCoords(){
     }
 }
 
-Shapes::Text::Text(){
-    top.X = 0;
-    top.Y = 0;
-    font = 10;
-    cout << "Text constructor" << endl;
+Shapes::Polyline::Polyline(){
+    cout << "PolyLine constructed\n";
 }
 
-void Shapes::Text::ReadText(XMLElement* T){
-    top.X = T->FloatAttribute("x");
-    top.Y = T->FloatAttribute("y");
-    font = T->FloatAttribute("font-size");
+void Shapes::Polyline::ReadPolyLine(XMLElement* PL){
+    stringstream ss(PL->Attribute("points"));
 
-    const char* t = T->GetText();
+    string tmp;
+    while(ss >> tmp){
+        stringstream sss(tmp);
+        string a, b;
+        getline(sss, a, ',');
+        getline(sss, b);
+        Points.push_back({(float) atof(a.c_str()), (float) atof(b.c_str())});
+    } 
 
-    top.Y -= font;
-    font /= float(4.0 / 3.0);
-    cout << font << " " << top.X << " " << top.Y << endl;
-    cout << font << " " << top.X << " " << top.Y << endl;
-    const char* C = T->Attribute("fill");
+    const char* C = PL->Attribute("fill");
+    const char* S = PL->Attribute("stroke"); 
     if (C != nullptr){
         string tmp = C;
         SetColor(tmp);
     }
-    if (t){
-        text = t;
+    if (S != nullptr){
+        string tmp = S;
+        SetStroke(tmp);
     }
-    cout << "Read text" << endl;
+    stroke_width = PL->Attribute("stroke-width") == nullptr ? 0 : PL->FloatAttribute("stroke-width");
+    color.SetAlpha(PL->Attribute("fill-opacity") == nullptr ? 1 : PL->FloatAttribute("fill-opacity"));
+    stroke.SetAlpha(PL->Attribute("stroke-opacity") == nullptr ? 1 : PL->FloatAttribute("stroke-opacity"));
 }
 
-void Shapes::Text::DrawT(Graphics *g){
+void Shapes::Polyline::DrawPL(Graphics* g){
+    vector <PointF> pF;
+    int size = Points.size();
+    Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
+    for (int i = 0; i < size; i++){
+        PointF pTemp(Points[i].GetX(), Points[i].GetY());
+        pF.push_back(pTemp);
+    }
+    if (stroke_width != 0) {
+        Pen p(Color(stroke.GetAlpha() * 255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
+        g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
+    }
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    Font TNR(L"Times New Roman", int(font));
-    // format.SetAlignment(StringAlignmentCenter);   // Center horizontally
-    // format.SetLineAlignment(StringAlignmentCenter); // Center vertically
-
-   size_t size_needed = mbstowcs(nullptr, text.c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wstr(size_needed, L'\0');
-    mbstowcs(&wstr[0], text.c_str(), size_needed);
-    cout << "Point: " << top.X << " " << top.Y << endl;
-    g->DrawString(wstr.c_str(), -1, &TNR, top, &b);
-    cout << "Draw string called" << endl;
+    g->FillPolygon(&b, pF.data(), static_cast<int> (pF.size()));
 }
+
+// void Shapes::Polyline::DrawPL(Graphics* g) {
+//     vector<PointF> pF;
+//     int size = Points.size();
+
+//     // Chuyển đổi các điểm từ Points sang PointF và thêm vào vector pF
+//     for (int i = 0; i < size; i++) {
+//         PointF pTemp(Points[i].GetX(), Points[i].GetY());
+//         pF.push_back(pTemp);
+//     }
+
+//     // Kiểm tra nếu stroke được khởi tạo (giả sử alpha = 0 có nghĩa là không khởi tạo)
+//     if (stroke.GetAlpha() > 0) {
+//         Pen p(Color(stroke.GetAlpha() * 255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width);
+//         g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
+//     }
+
+//     // Tạo brush để tô màu cho hình và tô nếu có
+//     SolidBrush b(Color(color.GetAlpha() * 255, color.GetRed(), color.GetGreen(), color.GetBlue()));
+//     g->FillPolygon(&b, pF.data(), static_cast<int>(pF.size()));
+// }

@@ -109,19 +109,8 @@ namespace Shapes{
         vector<Point> Points;
     public:
         Polyline();
-        void ReadPolyline(XMLElement* PL);
+        void ReadPolyLine(XMLElement* PL);
         void DrawPL(Graphics* g);
-    };
-
-    class Text:Object{
-    private:
-        PointF top;
-        float font;
-        string text;
-    public:
-        Text();
-        void ReadText(XMLElement* T);
-        void DrawT(Graphics* g);
     };
 }
 
