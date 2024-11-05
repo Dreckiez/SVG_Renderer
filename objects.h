@@ -49,78 +49,76 @@ namespace Shapes{
         Object();
         void SetColor(string s);
         void SetStroke(string s);
-        void GetColor();
-        void GetStroke();
+        virtual void Read(XMLElement* E) = 0;
+        virtual void Draw(Graphics* g, float s) = 0;
     };
 
-    class Rectangle:Object{
+    class Rectangle:public Object{
     private:
         Point A;
         float width, height;
     public:
         Rectangle();
-        void ReadRect(XMLElement* R);
-        void GetCoord();
-        void GetSize();
-        void DrawR(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 
-    class Line:Object{
+    class Line:public Object{
     private:
         Point start, end;
     public:
         Line();
-        void ReadLine(XMLElement* L);
-        void DrawL(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 
-    class Circle:Object{
+    class Circle:public Object{
     private:
         Point center;
         float radius;
     public:
         Circle();
-        void ReadCircle(XMLElement* C);
-        void DrawC(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 
-    class Ellipse:Object{
+    class Ellipse:public Object{
     private:
         Point center;
         float radius_x, radius_y;
     public:
         Ellipse();
-        void ReadEllipse(XMLElement* E);
-        void DrawE(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 
-    class Polygon:Object{
+    class Polygon:public Object{
     private:
         vector<Point> Points;
     public:
         Polygon();
-        void ReadPolygon(XMLElement* PG);
-        void DrawPG(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 
-    class Polyline:Object{
+    class Polyline:public Object{
     private:
         vector<Point> Points;
     public:
         Polyline();
-        void ReadPolyline(XMLElement* PL);
-        void DrawPL(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 
-    class Text:Object{
+    class Text:public Object{
     private:
         Point top;
         float font_size;
         string text;
     public:
         Text();
-        void ReadText(XMLElement* T);
-        void DrawT(Graphics* g);
+        void Read(XMLElement* E) override;
+        void Draw(Graphics* g, float s) override;
     };
 }
 
