@@ -136,13 +136,13 @@ void Shapes::Rectangle::Read(XMLElement* E){
 
 }
 
-void Shapes::Rectangle::Draw(Graphics* g, float s){
+void Shapes::Rectangle::Draw(Graphics* g, float s, PointF anchor){
     /* Pen p(Color((unsigned char)(stroke.GetAlpha()*255), (unsigned char)stroke.GetRed(), (unsigned char)stroke.GetGreen(), (unsigned char)stroke.GetBlue()), stroke_width);
     SolidBrush b(Color((unsigned char)color.GetAlpha(), (unsigned char)color.GetRed(), (unsigned char)color.GetGreen(), (unsigned char)color.GetBlue())); */
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width * s);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    g->FillRectangle(&b, A.GetX() * s, A.GetY() * s, width * s, height * s);
-    g->DrawRectangle(&p, A.GetX() * s, A.GetY() * s, width * s, height * s);
+    g->FillRectangle(&b, (A.GetX() - anchor.X) * s + anchor.X, (A.GetY() - anchor.Y) * s + anchor.Y, width * s, height * s);
+    g->DrawRectangle(&p, (A.GetX() - anchor.X) * s + anchor.X, (A.GetY() - anchor.Y) * s + anchor.Y, width * s, height * s);
 }
 
 
@@ -166,9 +166,9 @@ void Shapes::Line::Read(XMLElement* E){
     stroke.SetAlpha(E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
 }
 
-void Shapes::Line::Draw(Graphics* g, float s){
+void Shapes::Line::Draw(Graphics* g, float s, PointF anchor){
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width * s);
-    g->DrawLine(&p, start.GetX() * s, start.GetY() * s, end.GetX() * s, end.GetY() * s);
+    g->DrawLine(&p, (start.GetX() - anchor.X) * s + anchor.X, (start.GetY() - anchor.Y) * s + anchor.Y, (end.GetX() - anchor.X) * s + anchor.X, (end.GetY() - anchor.Y) * s + anchor.Y);
 }
 
 Shapes::Circle::Circle(){
@@ -196,11 +196,11 @@ void Shapes::Circle::Read(XMLElement* E){
     stroke.SetAlpha(E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
 }
 
-void Shapes::Circle::Draw(Graphics* g, float s){
+void Shapes::Circle::Draw(Graphics* g, float s, PointF anchor){
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width * s);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    g->FillEllipse(&b, (center.GetX()-radius) * s, (center.GetY()-radius) * s, radius*2 * s, radius*2 * s);
-    g->DrawEllipse(&p, (center.GetX()-radius) * s, (center.GetY()-radius) * s, radius*2 * s, radius*2 * s);
+    g->FillEllipse(&b, (center.GetX() - radius - anchor.X) * s + anchor.X, (center.GetY() - radius - anchor.Y) * s + anchor.Y, radius*2 * s, radius*2 * s);
+    g->DrawEllipse(&p, (center.GetX() - radius - anchor.X) * s + anchor.X, (center.GetY() - radius - anchor.Y) * s + anchor.Y, radius*2 * s, radius*2 * s);
 }
 
 Shapes::Ellipse::Ellipse(){
@@ -230,11 +230,11 @@ void Shapes::Ellipse::Read(XMLElement* E){
     stroke.SetAlpha(E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
 }
 
-void Shapes::Ellipse::Draw(Graphics* g, float s){
+void Shapes::Ellipse::Draw(Graphics* g, float s, PointF anchor){
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width * s);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
-    g->FillEllipse(&b, (center.GetX()-radius_x) * s, (center.GetY()-radius_y) * s, radius_x*2 * s, radius_y*2 * s);
-    g->DrawEllipse(&p, (center.GetX()-radius_x) * s, (center.GetY()-radius_y) * s, radius_x*2 * s, radius_y*2 * s);
+    g->FillEllipse(&b, (center.GetX() - radius_x - anchor.X) * s + anchor.X, (center.GetY() - radius_y - anchor.Y) * s + anchor.Y, radius_x*2 * s, radius_y*2 * s);
+    g->DrawEllipse(&p, (center.GetX() - radius_x - anchor.X) * s + anchor.X, (center.GetY() - radius_y - anchor.Y) * s + anchor.Y, radius_x*2 * s, radius_y*2 * s);
 }
 
 Shapes::Polygon::Polygon(){
@@ -269,10 +269,10 @@ void Shapes::Polygon::Read(XMLElement* E){
     stroke.SetAlpha(E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
 }
 
-void Shapes::Polygon::Draw(Graphics* g, float s){
+void Shapes::Polygon::Draw(Graphics* g, float s, PointF anchor){
     vector<PointF> list;
     for (int i = 0; i < Points.size(); i++){
-        list.push_back({Points[i].GetX() * s, Points[i].GetY() * s});
+        list.push_back({(Points[i].GetX() - anchor.X) * s + anchor.X, (Points[i].GetY() - anchor.Y) * s + anchor.Y});
     }
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width * s);
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
@@ -312,12 +312,11 @@ void Shapes::Polyline::Read(XMLElement* E){
     stroke.SetAlpha(E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
 }
 
-void Shapes::Polyline::Draw(Graphics* g, float s){
+void Shapes::Polyline::Draw(Graphics* g, float s, PointF anchor){
     vector <PointF> pF;
     int size = Points.size();
     for (int i = 0; i < size; i++){
-        PointF pTemp(Points[i].GetX() * s, Points[i].GetY() * s);
-        pF.push_back(pTemp);
+        pF.push_back({(Points[i].GetX() - anchor.X) * s + anchor.X, (Points[i].GetY() - anchor.Y) * s + anchor.Y});
     }
 
     Pen p(Color(stroke.GetAlpha()*255, stroke.GetRed(), stroke.GetGreen(), stroke.GetBlue()), stroke_width * s);
@@ -356,7 +355,7 @@ void Shapes::Text::Read(XMLElement* E){
     }
 }
 
-void Shapes::Text::Draw(Graphics *g, float s){
+void Shapes::Text::Draw(Graphics *g, float s, PointF anchor){
     SolidBrush b(Color(color.GetAlpha()*255, color.GetRed(), color.GetGreen(), color.GetBlue()));
     Font TNR(L"Times New Roman", int(font_size * s));
 
@@ -368,5 +367,5 @@ void Shapes::Text::Draw(Graphics *g, float s){
     wstring wstr(size_needed, L'\0');
     mbstowcs(&wstr[0], text.c_str(), size_needed);
 
-    g->DrawString(wstr.c_str(), -1, &TNR, {top.GetX() * s, top.GetY() * s}, &b);
+    g->DrawString(wstr.c_str(), -1, &TNR, {(top.GetX() - anchor.X) * s + anchor.X, (top.GetY() - anchor.Y) * s + anchor.Y}, &b);
 }

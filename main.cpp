@@ -2,6 +2,7 @@
 #include <gdiplus.h>
 #include <string>
 #include <memory>
+#include <iostream>
 #include "tinyxml2.h"
 #include "objects.h"
 using namespace Gdiplus;
@@ -10,6 +11,7 @@ using namespace std;
 
 ULONG_PTR gdiToken;
 float scale = 1;
+bool scale_mouse = 0;
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -21,10 +23,33 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             HWND ZoomOutButton = CreateWindowEx(0, "BUTTON", "Zoom Out", WS_CHILD | WS_VISIBLE | BS_DEFPUSHBUTTON, pos.right - 125, pos.bottom - 75, 100, 50, hwnd, (HMENU)2, (HINSTANCE)GetWindowLongPtr(hwnd, GWLP_HINSTANCE), nullptr);
             return 0;
         }
+        case WM_MOUSEWHEEL:{
+            // MessageBox(hwnd, "Mouse Wheel detected!", "Mouse Scroll", MB_OK);
+            int delta = GET_WHEEL_DELTA_WPARAM(wParam);
+            // cout << delta << '\n';
+            if (delta > 0){
+                if (scale < 3){
+                    if (scale == 0.25) scale += 0.25;
+                    else scale += 0.5;
+                    scale_mouse = 1;
+                    InvalidateRect(hwnd, nullptr, TRUE);
+                }
+            }
+            else if (delta < 0){
+                if (scale > 0.25){
+                    if (scale > 0.5) scale -= 0.5;
+                    else scale -= 0.25;
+                    scale_mouse = 1;
+                    InvalidateRect(hwnd, nullptr, TRUE);
+                }
+            }
+        }
         case WM_COMMAND:{
             if (LOWORD(wParam) == 1){
                 if (scale < 3){
-                    scale += 0.5;
+                    if (scale == 0.25) scale += 0.25;
+                    else scale += 0.5;
+                    scale_mouse = 0;
                     InvalidateRect(hwnd, nullptr, TRUE);
                 }
             }
@@ -32,6 +57,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 if (scale > 0.25){
                     if (scale > 0.5) scale -= 0.5;
                     else scale -= 0.25;
+                    scale_mouse = 0;
                     InvalidateRect(hwnd, nullptr, TRUE);
                 }
             }
@@ -49,42 +75,57 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             graphics.Clear(Color(255, 255, 255, 255));
             graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
+            PointF anchor;
+
+            if (scale_mouse){
+                POINT mouse_pos;
+                GetCursorPos(&mouse_pos);
+                anchor.X = mouse_pos.x;
+                anchor.Y = mouse_pos.y;
+            }
+            else {
+                RECT screen_center;
+                GetClientRect(hwnd, &screen_center);
+                anchor.X =  screen_center.right/2;
+                anchor.Y = screen_center.bottom/2;
+            }
+
             for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
                 if (name == "rect"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale, anchor);
                 }
                 else if (name == "line"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Line>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale, anchor);
                 }
                 else if (name == "circle"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Circle>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale,  anchor);
                 }
                 else if (name == "ellipse"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Ellipse>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale, anchor);
                 }
                 else if (name == "polygon"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Polygon>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale, anchor);
                 }
                 else if (name == "polyline"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Polyline>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale, anchor);
                 }
                 else if (name == "text"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Text>();
                     ptr->Read(root);
-                    ptr->Draw(&graphics, scale);
+                    ptr->Draw(&graphics, scale, anchor);
                 }
             }
             //graphics.SetSmoothingMode(SmoothingModeNone);

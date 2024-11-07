@@ -50,7 +50,7 @@ namespace Shapes{
         void SetColor(string s);
         void SetStroke(string s);
         virtual void Read(XMLElement* E) = 0;
-        virtual void Draw(Graphics* g, float s) = 0;
+        virtual void Draw(Graphics* g, float s, PointF anchor) = 0;
     };
 
     class Rectangle:public Object{
@@ -60,7 +60,7 @@ namespace Shapes{
     public:
         Rectangle();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 
     class Line:public Object{
@@ -69,7 +69,7 @@ namespace Shapes{
     public:
         Line();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 
     class Circle:public Object{
@@ -79,7 +79,7 @@ namespace Shapes{
     public:
         Circle();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 
     class Ellipse:public Object{
@@ -89,7 +89,7 @@ namespace Shapes{
     public:
         Ellipse();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 
     class Polygon:public Object{
@@ -98,7 +98,7 @@ namespace Shapes{
     public:
         Polygon();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 
     class Polyline:public Object{
@@ -107,7 +107,7 @@ namespace Shapes{
     public:
         Polyline();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 
     class Text:public Object{
@@ -118,7 +118,7 @@ namespace Shapes{
     public:
         Text();
         void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s) override;
+        void Draw(Graphics* g, float s, PointF anchor) override;
     };
 }
 
