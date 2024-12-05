@@ -3,8 +3,11 @@
 #include <string>
 #include <memory>
 #include <iostream>
+
 #include "tinyxml2.h"
-#include "objects.h"
+#include "Drawer.h"
+#include "Reader.h"
+
 using namespace Gdiplus;
 using namespace std;
 #pragma comment(lib, "gdiplus.lib")
@@ -68,7 +71,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_PAINT:{
             tinyxml2::XMLDocument doc;
-            doc.LoadFile("svg-02.svg");
+            doc.LoadFile("sample2.svg");
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             Graphics graphics(hdc);
@@ -89,7 +92,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 anchor.Y = screen_center.bottom/2;
             }
             vector <unique_ptr<Shapes::Object>> list;
-            Shapes::Reader reader;
+            Reader reader;
 
             for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
@@ -134,7 +137,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     list.push_back(std::move(ptr));
                 }
             }
-            Shapes::Drawer drawer(list);
+            Drawer drawer(list);
             drawer.Draw(&graphics, scale, anchor);
             //graphics.SetSmoothingMode(SmoothingModeNone);
 

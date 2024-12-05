@@ -1,16 +1,19 @@
 #ifndef OBJECTS_H
 #define OBJECTS_H
 
-#include<string>
-#include<vector>
-#include<windows.h>
-#include<gdiplus.h>
-#include<cmath>
+#include <string>
+#include <vector>
+#include <windows.h>
+#include <gdiplus.h>
+#include <cmath>
 #include "tinyxml2.h"
 #include <memory>
+
 using namespace std;
 using namespace Gdiplus;
 using namespace tinyxml2;
+
+#include "NamedColors.cpp"
 
 namespace Shapes{
     class RGBA{
@@ -181,34 +184,9 @@ namespace Shapes{
         void addCoor(float coordinate);
     };
 
-    class Reader{
-	public:
-		Reader(); 
-	    void ReadRectangle(Rectangle* rect, XMLElement* E);
-	    void ReadLine(Line* line, XMLElement* E);
-	    void ReadCircle(Circle* circle, XMLElement* E);
-	    void ReadEllipse(Ellipse* ellipse, XMLElement* E);
-	    void ReadPolygon(Polygon* polygon, XMLElement* E);
-	    void ReadPolyline(Polyline* polyline, XMLElement* E);
-	    void ReadText(Text* text, XMLElement* E);
-        void ReadPath(Path* path, XMLElement *E);
-	};
+    
 
-    class Drawer{
-    private:
-        vector <unique_ptr<Shapes::Object>> shapeList;
-    public:
-        Drawer(vector<unique_ptr<Shapes::Object>>& list);
-        void DrawR(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawC(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawE(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawPG(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawPL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawT(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void DrawP(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-        void Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    };    
+    
 
 
     class Transform{
