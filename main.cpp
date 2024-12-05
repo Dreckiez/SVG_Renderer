@@ -68,7 +68,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_PAINT:{
             tinyxml2::XMLDocument doc;
-            doc.LoadFile("sample.svg");
+            doc.LoadFile("svg-02.svg");
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             Graphics graphics(hdc);
@@ -76,7 +76,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
             PointF anchor;
-
             if (scale_mouse){
                 POINT mouse_pos;
                 GetCursorPos(&mouse_pos);
@@ -89,45 +88,54 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 anchor.X =  screen_center.right/2;
                 anchor.Y = screen_center.bottom/2;
             }
+            vector <unique_ptr<Shapes::Object>> list;
+            Shapes::Reader reader;
 
             for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
                 if (name == "rect"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale, anchor);
+                    reader.ReadRectangle(dynamic_cast<Shapes::Rectangle*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
                 else if (name == "line"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Line>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale, anchor);
+                    reader.ReadLine(dynamic_cast<Shapes::Line*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
                 else if (name == "circle"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Circle>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale,  anchor);
+                    reader.ReadCircle(dynamic_cast<Shapes::Circle*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
                 else if (name == "ellipse"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Ellipse>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale, anchor);
+                    reader.ReadEllipse(dynamic_cast<Shapes::Ellipse*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
                 else if (name == "polygon"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Polygon>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale, anchor);
+                    reader.ReadPolygon(dynamic_cast<Shapes::Polygon*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
                 else if (name == "polyline"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Polyline>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale, anchor);
+                    reader.ReadPolyline(dynamic_cast<Shapes::Polyline*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
                 else if (name == "text"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Text>();
-                    ptr->Read(root);
-                    ptr->Draw(&graphics, scale, anchor);
+                    reader.ReadText(dynamic_cast<Shapes::Text*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
+                }
+                else if (name == "path"){
+                    unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
+                    reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
             }
+            Shapes::Drawer drawer(list);
+            drawer.Draw(&graphics, scale, anchor);
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
             EndPaint(hwnd, &ps);

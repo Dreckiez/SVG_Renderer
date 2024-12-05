@@ -5,7 +5,9 @@
 #include<vector>
 #include<windows.h>
 #include<gdiplus.h>
+#include<cmath>
 #include "tinyxml2.h"
+#include <memory>
 using namespace std;
 using namespace Gdiplus;
 using namespace tinyxml2;
@@ -45,12 +47,22 @@ namespace Shapes{
         RGBA color;
         RGBA stroke;
         float stroke_width;
+        string Transform;
     public:
         Object();
-        void SetColor(string s);
-        void SetStroke(string s);
-        virtual void Read(XMLElement* E) = 0;
-        virtual void Draw(Graphics* g, float s, PointF anchor) = 0;
+        virtual ~Object() = default;
+        void SetColor(string s, float alpha);
+        void SetStroke(string s, float alpha);
+
+        void StringToRGB(int &r, int &g, int &b, string s);
+        Shapes::RGBA getColor();
+        Shapes::RGBA getStroke();
+
+        void setStrokeWidth(float width);
+        float getStrokeWidth();
+
+        void setTransformString(const char* T);
+        void setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor);
     };
 
     class Rectangle:public Object{
@@ -59,8 +71,17 @@ namespace Shapes{
         float width, height;
     public:
         Rectangle();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+        
+        void setPoint(Point& p);
+        Point getPoint();
+        
+        void setWidth(float w);
+        float getWidth();
+        
+        void setHeight(float h);
+        float getHeight();
+        
+	    
     };
 
     class Line:public Object{
@@ -68,8 +89,12 @@ namespace Shapes{
         Point start, end;
     public:
         Line();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+        
+        void setStart(Point& s);
+        Point getStart();
+        
+        void setEnd(Point& e);
+        Point getEnd();
     };
 
     class Circle:public Object{
@@ -78,8 +103,13 @@ namespace Shapes{
         float radius;
     public:
         Circle();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+        
+        Point getCenter();
+        void setCenter(Point& p);
+        
+        float getRadius();
+        void setRadius(float r);
+        
     };
 
     class Ellipse:public Object{
@@ -88,8 +118,15 @@ namespace Shapes{
         float radius_x, radius_y;
     public:
         Ellipse();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+        
+        Point getCenter();
+        void setCenter(Point& p);
+        
+        float getRadiusX();
+        void setRadiusX(float rx);
+        
+        float getRadiusY();
+        void setRadiusY(float ry);
     };
 
     class Polygon:public Object{
@@ -97,8 +134,9 @@ namespace Shapes{
         vector<Point> Points;
     public:
         Polygon();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+        
+        vector<Point> getPoints();
+        void setPoints(vector<Point>& pts);
     };
 
     class Polyline:public Object{
@@ -106,8 +144,9 @@ namespace Shapes{
         vector<Point> Points;
     public:
         Polyline();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+       
+        vector<Point> getPoints();
+        void setPoints(vector<Point>& pts);
     };
 
     class Text:public Object{
@@ -117,9 +156,68 @@ namespace Shapes{
         string text;
     public:
         Text();
-        void Read(XMLElement* E) override;
-        void Draw(Graphics* g, float s, PointF anchor) override;
+        
+    	Point getTop();
+    	void setTop(Point& p);
+    	
+        float getFontSize();
+        void setFontSize(float size);
+        
+        string getText();
+        void setText(string& str);
     };
-}
+
+    class Path:public Object{
+    private:
+        vector<char> cmd;
+        vector<float> coor;
+    public:
+        Path();
+
+        vector<char> getCmd();
+        vector<float> getCoor();
+
+        void addCmd(char c);
+        void addCoor(float coordinate);
+    };
+
+    class Reader{
+	public:
+		Reader(); 
+	    void ReadRectangle(Rectangle* rect, XMLElement* E);
+	    void ReadLine(Line* line, XMLElement* E);
+	    void ReadCircle(Circle* circle, XMLElement* E);
+	    void ReadEllipse(Ellipse* ellipse, XMLElement* E);
+	    void ReadPolygon(Polygon* polygon, XMLElement* E);
+	    void ReadPolyline(Polyline* polyline, XMLElement* E);
+	    void ReadText(Text* text, XMLElement* E);
+        void ReadPath(Path* path, XMLElement *E);
+	};
+
+    class Drawer{
+    private:
+        vector <unique_ptr<Shapes::Object>> shapeList;
+    public:
+        Drawer(vector<unique_ptr<Shapes::Object>>& list);
+        void DrawR(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawC(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawE(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawPG(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawPL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawT(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void DrawP(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+        void Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+    };    
+
+
+    class Transform{
+    private:
+        vector <Object*> content;
+    public:
+
+    };
+
+};
 
 #endif
