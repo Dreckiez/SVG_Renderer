@@ -185,33 +185,6 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     
     cout << d << endl;
 
-    // for (int i = 0; i < d.size(); i++){
-    //     if (!isalpha(d[i]) && !isdigit(d[i])){
-    //         d[i] = ' ';
-    //     }
-    // }
-
-    // cout << d << endl;
-
-    // for (int i = 0; i < d.size() - 1; i++){
-    //     if (isalpha(d[i]) && isdigit(d[i + 1])){
-    //         d.insert(i - 1, " ");
-    //         i++;
-    //     }
-    //     // if (isdigit(d[i]) && isalpha(d[i + 1])){
-    //     //     d.insert(i, 1, ' ');
-    //     // }
-    // }
-
-    // cout << d << endl;
-
-    // for (int i = 0; i < d.size() - 1; i++){
-    //     if (d[i] == ' ' && d[i + 1] == ' ')
-    //         d.erase(i);
-    // }
-
-    // cout << d << endl;
-
     char c;
     string num = "";
     int n;
