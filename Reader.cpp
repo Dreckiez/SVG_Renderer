@@ -1,5 +1,33 @@
 #include "Reader.h"
 
+#include <iostream>
+using namespace std;
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
+
 Reader::Reader() {
     cout << "Reader constructed\n";
 }
@@ -183,61 +211,84 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     string d = E->Attribute("d");
     
+    //replace all delimeter into spaces
+    for (int i = 0; i < d.size(); i++){
+        if (!isalpha(d[i]) && !isdigit(d[i])){
+            d[i] = ' ';
+        }
+    }
+
+    //insert spaces between command and numbers
+    for (int i = 0; i < d.size() - 1; i++){
+        if (isalpha(d[i]) && isdigit(d[i + 1])){
+            d.insert(i + 1, " ");
+            i++;
+        }
+        if (isdigit(d[i]) && isalpha(d[i + 1])){
+            d.insert(i + 1, " ");
+        }
+    }
+
+    //remove excessive spaces
+    for (int i = 0; i < d.size() - 1; i++){
+        if (d[i] == ' ' && d[i + 1] == ' '){
+            d.erase(i, 1);
+            i--;
+        }
+    }
+
     cout << d << endl;
 
-    // for (int i = 0; i < d.size(); i++){
-    //     if (!isalpha(d[i]) && !isdigit(d[i])){
-    //         d[i] = ' ';
-    //     }
-    // }
-
-    // cout << d << endl;
-
-    // for (int i = 0; i < d.size() - 1; i++){
-    //     if (isalpha(d[i]) && isdigit(d[i + 1])){
-    //         d.insert(i - 1, " ");
-    //         i++;
-    //     }
-    //     // if (isdigit(d[i]) && isalpha(d[i + 1])){
-    //     //     d.insert(i, 1, ' ');
-    //     // }
-    // }
-
-    // cout << d << endl;
-
-    // for (int i = 0; i < d.size() - 1; i++){
-    //     if (d[i] == ' ' && d[i + 1] == ' ')
-    //         d.erase(i);
-    // }
-
-    // cout << d << endl;
-
-    char c;
-    string num = "";
-    int n;
+    stringstream ss(d);
     
-    for (int i = 0; i < d.size(); i++){
-        if (isalpha(d[i])){
-            path->addCmd(d[i]);
-            if (d[i] == 'Z' || d[i] == 'z') break;
-        }
-        else if (isdigit(d[i])){
-            num += d[i];
-            if (i + 1 < d.size() && !isdigit(d[i+1])){
-                path->addCoor(atof(num.c_str()));
-                num.clear();
+    char c;
+    float x = 0, y = 0;;
+    int n;
+
+    while (ss){
+        ss >> c;
+        Shapes::Command cmd;
+        cmd.setCmd(c);
+        if (c == 'Z' || c == 'z')
+            break;
+        while (ss){
+            if (ss >> x >> y){
+                PointF p(x, y);
+                cmd.addPoint(p);
+            } else {
+                ss.clear(); // Clear the fail state
+                break;
             }
         }
+        path->add(cmd);
     }
 
     for (int i = 0; i < path->getCmd().size(); i++){
-        cout << path->getCmd()[i] << " ";
+        cout << path->getCmdAt(i).toString() << endl;
     }
-    cout << endl;
-    for (int i = 0; i < path->getCoor().size(); i++){
-        cout << path->getCoor()[i] << " ";
-    }
-    cout << endl;
+    
+    // for (int i = 0; i < d.size(); i++){
+    //     if (isalpha(d[i])){
+    //         path->addCmd(d[i]);
+    //         if (d[i] == 'Z' || d[i] == 'z') break;
+    //     }
+    //     else if (isdigit(d[i])){
+    //         num += d[i];
+    //         if (i + 1 < d.size() && !isdigit(d[i+1])){
+    //             path->addCoor(atof(num.c_str()));
+    //             num.clear();
+    //         }
+    //     }
+    // }
+
+    // for (int i = 0; i < path->getCmd().size(); i++){
+    //     cout << path->getCmd()[i] << " ";
+    // }
+    // cout << endl;
+    // for (int i = 0; i < path->getCoor().size(); i++){
+    //     cout << path->getCoor()[i] << " ";
+    // }
+    // cout << endl;
 
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");

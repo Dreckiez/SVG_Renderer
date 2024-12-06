@@ -78,7 +78,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             graphics.Clear(Color(255, 255, 255, 255));
             graphics.SetSmoothingMode(SmoothingModeAntiAlias);
 
-            PointF anchor;
+            Gdiplus::PointF anchor;
             if (scale_mouse){
                 POINT mouse_pos;
                 GetCursorPos(&mouse_pos);

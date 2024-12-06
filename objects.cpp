@@ -388,25 +388,43 @@ void Shapes::Text::setText(string& str) {
 }
 
 
-Shapes::Path::Path(){
-    cout << "Path constructed\n";
+
+//command
+Shapes::Command::Command(){
+    cmd = ' ';
 }
 
-void Shapes::Path::addCmd(char c){
+char Shapes::Command::getCmd() { return cmd; }
+void Shapes::Command::setCmd(char c) { cmd = c; } 
+
+vector<Gdiplus::PointF> Shapes::Command::getPoints() { return points; }
+
+void Shapes::Command::addPoint(PointF p){
+    points.push_back(p);
+}
+
+string Shapes::Command::toString(){
+    string s = "";
+    s += cmd;
+    for (int i = 0; i < points.size(); i++){
+        s += to_string(points[i].X) + ' ' + to_string(points[i].Y) + ' ';
+    }
+    return s;
+}
+
+//path
+Shapes::Path::Path(){}
+
+vector<Shapes::Command> Shapes::Path::getCmd(){ return cmd; }
+
+Shapes::Command Shapes::Path::getCmdAt(int idx){
+    if (idx <= cmd.size())
+        return cmd[idx];
+    return cmd[0];
+}
+
+void Shapes::Path::add(Command c){
     cmd.push_back(c);
 }
-
-void Shapes::Path::addCoor(float coordinate){
-    coor.push_back(coordinate);
-}
-
-vector<char> Shapes::Path::getCmd(){
-    return cmd;
-}
-
-vector<float> Shapes::Path::getCoor(){
-    return coor;
-}
-
 
 

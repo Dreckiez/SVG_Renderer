@@ -170,23 +170,33 @@ namespace Shapes{
         void setText(string& str);
     };
 
+    class Command{
+    private:
+        char cmd;
+        vector<Gdiplus::PointF> points;
+    public:
+        Command();
+
+        char getCmd();
+        void setCmd(char c);
+
+        vector<Gdiplus::PointF> getPoints();
+        void addPoint(PointF p);
+
+        string toString();
+    };
+
     class Path:public Object{
     private:
-        vector<char> cmd;
-        vector<float> coor;
+        vector<Command> cmd;
     public:
         Path();
 
-        vector<char> getCmd();
-        vector<float> getCoor();
+        vector<Command> getCmd();
+        Command getCmdAt(int idx);
 
-        void addCmd(char c);
-        void addCoor(float coordinate);
+        void add(Command c);
     };
-
-    
-
-    
 
 
     class Transform{

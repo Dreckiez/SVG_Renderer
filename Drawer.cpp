@@ -123,7 +123,7 @@ void Drawer::DrawT(Gdiplus::Graphics *g, float s, Gdiplus::PointF anchor){
 }
 
 void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
-    Shapes::Path* PathPtr = dynamic_cast <Shapes::Path*> (shapeList.front().get());
+/*    Shapes::Path* PathPtr = dynamic_cast <Shapes::Path*> (shapeList.front().get());
     if(PathPtr == NULL)
         return;
     Shapes::Path P = *PathPtr;
@@ -384,6 +384,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
     g->DrawPath(&p, &path);
     g->FillPath(&b, &path);
     g->ResetTransform();
+    */
 }
 
 void Drawer::Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
