@@ -1,4 +1,5 @@
 #include "Drawer.h"
+#include <gdiplus.h>
 
 Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list){
     int n = list.size();
@@ -122,7 +123,7 @@ void Drawer::DrawT(Gdiplus::Graphics *g, float s, Gdiplus::PointF anchor){
     }
 }
 
-void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
+void Drawer::DrawP(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
     Shapes::Path* PathPtr = dynamic_cast <Shapes::Path*> (shapeList.front().get());
     if(PathPtr == NULL)
         return;
@@ -156,14 +157,14 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrY = coor[pos+1];
 
             if (cmd[i] == 'M'){
-                path.AddLine((PointF){CurrX, CurrY}, (PointF){CurrX, CurrY});
+                path.AddLine((Gdiplus::PointF){CurrX, CurrY}, (Gdiplus::PointF){CurrX, CurrY});
 
                 PrevX = CurrX;
                 PrevY = CurrY;
                 cout << "Move (absolute)\n";
             }
             else {
-                path.AddLine((PointF){PrevX + CurrX, PrevY + CurrY}, (PointF){PrevX + CurrX, PrevY + CurrY});
+                path.AddLine((Gdiplus::PointF){PrevX + CurrX, PrevY + CurrY}, (Gdiplus::PointF){PrevX + CurrX, PrevY + CurrY});
 
                 PrevX += CurrX;
                 PrevY += CurrY;
@@ -177,14 +178,14 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrY = coor[pos+1];
 
             if (cmd[i] == 'L'){
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){CurrX, CurrY});
+                path.AddLine((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){CurrX, CurrY});
 
                 PrevX = CurrX;
                 PrevY = CurrY;
                 cout << "Line (absolute)\n";
             }
             else {
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX + CurrX, PrevY + CurrY});
+                path.AddLine((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){PrevX + CurrX, PrevY + CurrY});
 
                 PrevX += CurrX;
                 PrevY += CurrY;
@@ -197,13 +198,13 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrX = coor[pos];
 
             if (cmd[i] == 'H'){
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){CurrX, PrevY});
+                path.AddLine((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){CurrX, PrevY});
 
                 PrevX = CurrX;
                 cout << "Horizontal Line (absolute)\n";
             }
             else {
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX + CurrX, PrevY});
+                path.AddLine((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){PrevX + CurrX, PrevY});
                 
                 PrevX += CurrX;
                 cout << "Horizontal Line (relative)\n";
@@ -215,13 +216,13 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrY = coor[pos];
             
             if (cmd[i] == 'V'){
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX, CurrY});
+                path.AddLine((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){PrevX, CurrY});
 
                 PrevY = CurrY;
                 cout << "Vertical Line (absolute)\n";
             }
             else {
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX, PrevY + CurrY});
+                path.AddLine((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){PrevX, PrevY + CurrY});
                 
                 PrevY += CurrY;
                 cout << "Vertical (relative)\n";
@@ -237,7 +238,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrX = coor[pos];
             CurrY = coor[pos+1];
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){Control_P2_X, Control_P2_Y}, (Gdiplus::PointF){CurrX, CurrY});
             
             PrevX = CurrX;
             PrevY = CurrY;
@@ -254,7 +255,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrX = coor[pos];
             CurrY = coor[pos+1];
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){PrevX + Offset_P1_X, PrevY + Offset_P1_Y}, (PointF){PrevX + Offset_P2_X, PrevY + Offset_P2_Y}, (PointF){PrevX + CurrX, PrevY + CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){PrevX + Offset_P1_X, PrevY + Offset_P1_Y}, (Gdiplus::PointF){PrevX + Offset_P2_X, PrevY + Offset_P2_Y}, (Gdiplus::PointF){PrevX + CurrX, PrevY + CurrY});
             
             Prev_CurveX = PrevX + Offset_P2_X;
             Prev_CurveY = PrevY + Offset_P2_Y;
@@ -271,7 +272,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrX = coor[pos];
             CurrY = coor[pos+1];
             
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){Control_P2_X, Control_P2_Y}, (Gdiplus::PointF){CurrX, CurrY});
             
             PrevX = CurrX;
             PrevY = CurrY;
@@ -288,7 +289,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             CurrX = coor[pos];
             CurrY = coor[pos+1];
             
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){PrevX + Offset_P2_X, PrevY + Offset_P2_Y}, (PointF){PrevX + CurrX, PrevY + CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){PrevX + Offset_P2_X, PrevY + Offset_P2_Y}, (Gdiplus::PointF){PrevX + CurrX, PrevY + CurrY});
             
             Prev_CurveX = PrevX + Offset_P2_X;
             Prev_CurveY = PrevY + Offset_P2_Y;
@@ -308,7 +309,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
             // cout << PrevX << ' ' << PrevY << ' ' << Prev_CurveX << ' ' << Prev_CurveY << ' ' << Control_P1_X << ' ' << Control_P1_Y << ' ' << Control_P2_X << ' ' << Control_P2_Y << ' ' << CurrX << ' ' << CurrY << '\n';
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){Control_P2_X, Control_P2_Y}, (Gdiplus::PointF){CurrX, CurrY});
 
             PrevX = CurrX;
             PrevY = CurrY;
@@ -328,7 +329,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
 
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){Control_P2_X, Control_P2_Y}, (Gdiplus::PointF){CurrX, CurrY});
 
             Prev_CurveX = Control_P2_X;
             Prev_CurveY = Control_P2_Y; 
@@ -347,7 +348,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             float Control_P2_X = CurrX + (2 * (Quad_X - CurrX))/3.0;
             float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){Control_P2_X, Control_P2_Y}, (Gdiplus::PointF){CurrX, CurrY});
 
             PrevX = CurrX;
             PrevY = CurrY;
@@ -366,7 +367,7 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
             float Control_P2_X = CurrX + (2 * (Quad_X - CurrX))/3.0;
             float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier((Gdiplus::PointF){PrevX, PrevY}, (Gdiplus::PointF){Control_P1_X, Control_P1_Y}, (Gdiplus::PointF){Control_P2_X, Control_P2_Y}, (Gdiplus::PointF){CurrX, CurrY});
 
             PrevX = CurrX;
             PrevY = CurrY;
