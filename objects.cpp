@@ -408,5 +408,114 @@ vector<float> Shapes::Path::getCoor(){
     return coor;
 }
 
+void Shapes::Point::SetPoint(Point p){
+    x = p.GetX();
+    y = p.GetY();
+}
 
+Shapes::LinearGradient::LinearGradient(){
+    id = "";
+    start.SetPoint(0,0);
+    end.SetPoint(0,0);
+}
 
+Shapes::LinearGradient::LinearGradient(string I, Point S, Point E){
+    id = I;
+    start.SetPoint(S);
+    end.SetPoint(E);
+}
+
+Shapes::Point& Shapes::LinearGradient::get_start(){
+    return start;
+}
+
+Shapes::Point& Shapes::LinearGradient::get_end(){
+    return end;
+}
+
+std::string& Shapes::LinearGradient::get_id(){
+    return id;
+}
+
+void Shapes::LinearGradient::set_start(Point p){
+    start.SetPoint(p);
+}
+
+void Shapes::LinearGradient::set_end(Point p){
+    end.SetPoint(p);
+}
+
+vector <float>& Shapes::LinearGradient::get_stops(){
+    return stops;
+}
+
+vector <Shapes::RGBA>& Shapes::LinearGradient::get_colors(){
+    return colors;
+}
+
+vector <Shapes::LinearGradient>& Shapes::LinearVector::get_content(){
+    return content;
+}
+
+void Shapes::LinearGradient::set_id(std::string str){
+    id = str;
+}
+
+void Shapes::LinearVector::read_gradient(tinyxml2::XMLElement* defs){
+    Shapes::LinearGradient LG;
+    for (XMLElement* gradientElem = defs->FirstChildElement("linearGradient");
+         gradientElem; gradientElem = gradientElem->NextSiblingElement("linearGradient")) {
+        LG.set_id(gradientElem->Attribute("id"));
+        LG.get_colors().clear();
+        LG.get_stops().clear();
+        // Set start and end pos;
+        if(gradientElem->Attribute("x1")){
+            float x1 = atof(gradientElem->Attribute("x1")), y1 = atof(gradientElem->Attribute("y1"));
+            float x2 = atof(gradientElem->Attribute("x2")), y2 = atof(gradientElem->Attribute("y2"));
+            Point s(x1,y1), e(x2,y2);
+            LG.set_start(s);
+            LG.set_end(e);
+        }
+        else{
+            int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+            Point s(0,0), e(screenWidth,0);
+            LG.set_start(s);
+            LG.set_end(e);
+        }
+
+        // Read all <stop> elements
+        for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
+             stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
+            float offset = 0.0f;
+            stopElem->QueryFloatAttribute("offset", &offset);
+            LG.get_stops().push_back(offset);
+
+            string colorHex = stopElem->Attribute("stop-color");
+            float stopOpacity = 1.0f;
+            stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
+            RGBA color;
+            color.HexToRGB(colorHex);
+            color.SetAlpha(stopOpacity);
+            LG.get_colors().push_back(color);
+        }
+        // Add the gradient to the vector
+        content.push_back(LG);
+    }
+
+    return;
+}
+
+void Shapes::RGBA::HexToRGB(string s){
+    size_t hex = s.find('#');
+    if (hex != string::npos){
+        if (s.size() == 4){
+            red = stoi(string(2, s[1]), nullptr, 16);
+            green = stoi(string(2, s[2]), nullptr, 16);
+            blue = stoi(string(2, s[3]), nullptr, 16);
+        }else if (s.size() == 7){
+            red = stoi(s.substr(1,2), nullptr, 16);
+            green = stoi(s.substr(3,2), nullptr, 16);
+            blue = stoi(s.substr(5,2), nullptr, 16);
+        }
+    }
+}

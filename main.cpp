@@ -71,7 +71,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_PAINT:{
             tinyxml2::XMLDocument doc;
-            doc.LoadFile("sample2.svg");
+            doc.LoadFile("sample.svg");
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             Graphics graphics(hdc);
@@ -91,10 +91,17 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 anchor.X =  screen_center.right/2;
                 anchor.Y = screen_center.bottom/2;
             }
+            Shapes::LinearVector LG;
             vector <unique_ptr<Shapes::Object>> list;
             Reader reader;
+            tinyxml2::XMLElement* root = doc.FirstChildElement("svg");
+            tinyxml2::XMLElement* def = root->FirstChildElement("defs");
+            if(def){
+                LG.read_gradient(def);
+            }
+            root = root->FirstChildElement();
 
-            for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
+            for (; root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
                 if (name == "rect"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
@@ -131,11 +138,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     reader.ReadText(dynamic_cast<Shapes::Text*>(ptr.get()), root);
                     list.push_back(std::move(ptr));
                 }
-                else if (name == "path"){
-                    unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
-                    reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
-                    list.push_back(std::move(ptr));
-                }
+                // else if (name == "path"){
+                //     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
+                //     reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
+                //     list.push_back(std::move(ptr));
+                // }
             }
             Drawer drawer(list);
             drawer.Draw(&graphics, scale, anchor);

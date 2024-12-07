@@ -30,6 +30,7 @@ namespace Shapes{
         float GetAlpha();
         void SetRGB(int r, int g, int b);
         void SetAlpha(float a);
+        void HexToRGB(string s);
     };
 
     class Point{
@@ -43,6 +44,34 @@ namespace Shapes{
         void SetX(float a);
         void SetY(float a);
         void SetPoint(float a, float b);
+        void SetPoint(Point p);
+    };
+
+    class LinearGradient{
+    private:
+        string id;
+        Point start, end;
+        vector <float> stops;
+        vector <RGBA> colors;
+    public:
+        LinearGradient();
+        LinearGradient(string I, Point S, Point E);
+        Point& get_start();
+        Point& get_end();
+        string& get_id();
+        void set_start(Point p);
+        void set_end(Point p);
+        void set_id(std::string str);
+        vector <float>& get_stops();
+        vector <RGBA>& get_colors();
+    };
+
+    class LinearVector{
+    private:
+        vector <LinearGradient> content;
+    public:
+        vector <LinearGradient>& get_content();
+        void read_gradient(tinyxml2::XMLElement* defs);
     };
 
     class Object{
