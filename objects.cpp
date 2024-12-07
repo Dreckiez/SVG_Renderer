@@ -122,8 +122,9 @@ void Shapes::Object::SetStroke(string s, float alpha){
 
 void Shapes::Object::StringToRGB(int &r, int &g, int &b, string s){
     // cout << s << " ";
-    size_t hex = s.find('#');
-    if (hex != string::npos){
+    if (s == "none"){
+        r = b = g = 0;
+    }else if (s.find('#') != string::npos){
         // cout << "hex ";
         if (s.size() == 4){
             r = stoi(string(2, s[1]), nullptr, 16);

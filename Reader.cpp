@@ -2,31 +2,7 @@
 
 #include <iostream>
 using namespace std;
-void __print(int x) {cerr << x;}
-void __print(long x) {cerr << x;}
-void __print(long long x) {cerr << x;}
-void __print(unsigned x) {cerr << x;}
-void __print(unsigned long x) {cerr << x;}
-void __print(unsigned long long x) {cerr << x;}
-void __print(float x) {cerr << x;}
-void __print(double x) {cerr << x;}
-void __print(long double x) {cerr << x;}
-void __print(char x) {cerr << '\'' << x << '\'';}
-void __print(const char *x) {cerr << '\"' << x << '\"';}
-void __print(const string &x) {cerr << '\"' << x << '\"';}
-void __print(bool x) {cerr << (x ? "true" : "false");}
-template<typename T, typename V>
-void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
-template<typename T>
-void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
-void _print() {cerr << "]\n";}
-template <typename T, typename... V>
-void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
-#ifndef ONLINE_JUDGE
-#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
-#else
-#define debug(x...)
-#endif
+
 
 Reader::Reader() {
     cout << "Reader constructed\n";
@@ -206,25 +182,28 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     const char* C = E->Attribute("fill");
     if (C != nullptr) text->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
 
+    const char* S = E->Attribute("stroke");
+    if (S != nullptr) text->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     string d = E->Attribute("d");
-    
+
     //replace all delimeter into spaces
     for (int i = 0; i < d.size(); i++){
-        if (!isalpha(d[i]) && !isdigit(d[i])){
-            d[i] = ' ';
+        if ((d[i] == ',' || d[i] == '.' || d[i] == '\n')){
+            d[i]= ' ';
         }
     }
 
     //insert spaces between command and numbers
     for (int i = 0; i < d.size() - 1; i++){
-        if (isalpha(d[i]) && isdigit(d[i + 1])){
+        if (isalpha(d[i])  && (isdigit(d[i + 1]) || d[i + 1] == '-')){
             d.insert(i + 1, " ");
-            i++;
-        }
-        if (isdigit(d[i]) && isalpha(d[i + 1])){
+        }else if ((isdigit(d[i]) || d[i] == '-') && isalpha(d[i + 1])){
+            d.insert(i + 1, " ");
+        }else if (isalpha(d[i] && isalpha(d[i + 1]))){
             d.insert(i + 1, " ");
         }
     }
@@ -245,22 +224,40 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     float x = 0, y = 0;;
     int n;
 
-    while (ss){
-        ss >> c;
+    while (ss >> c){
+        if (ss.fail()){
+
+            break;
+        }
+        
         Shapes::Command cmd;
         cmd.setCmd(c);
-        if (c == 'Z' || c == 'z')
-            break;
-        while (ss){
-            if (ss >> x >> y){
-                PointF p(x, y);
-                cmd.addPoint(p);
-            } else {
-                ss.clear(); // Clear the fail state
-                break;
+        if (c == 'Z' || c == 'z'){
+            path->add(cmd);
+            continue;
+        }
+        if (c == 'H' || c == 'h'){
+            ss >> x;
+            PointF p(x, 0);
+            cmd.addPoint(p);
+        }else if (c == 'V' || c == 'v'){
+            ss >> y;
+            PointF p(0, y);
+            cmd.addPoint(p);
+        }else{
+            while (ss){
+                if (ss >> x >> y){
+                    PointF p(x, y);
+                    cmd.addPoint(p);
+                }else{
+                    ss.clear(); // Clear the fail state
+                    //ss.ignore(numeric_limits<streamsize>::max(), ' ');
+                    break;
+                }
             }
         }
         path->add(cmd);
+        // cout << ss.str() << endl;
     }
 
     for (int i = 0; i < path->getCmd().size(); i++){
@@ -294,17 +291,21 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
     
-    
+
     if (T != nullptr)
         path->setTransformString(T);
+
     if (C != nullptr){
         string tmp = C;
-        path->SetColor(tmp, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
+        if (E->Attribute("fill-opacity") != nullptr)
+            path->SetColor(C, E->FloatAttribute("fill-opacity"));
     }
+
     if (S != nullptr){
         string tmp = S;
         path->SetStroke(tmp, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
     }
+
     if (E->Attribute("stroke-width"))
         path->setStrokeWidth(E->FloatAttribute("stroke-width"));
 }

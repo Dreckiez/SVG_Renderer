@@ -1,4 +1,35 @@
 #include "Drawer.h"
+#include "gdiplus.h"
+
+using namespace Gdiplus;
+
+#include <iostream>
+using namespace std;
+void __print(int x) {cerr << x;}
+void __print(long x) {cerr << x;}
+void __print(long long x) {cerr << x;}
+void __print(unsigned x) {cerr << x;}
+void __print(unsigned long x) {cerr << x;}
+void __print(unsigned long long x) {cerr << x;}
+void __print(float x) {cerr << x;}
+void __print(double x) {cerr << x;}
+void __print(long double x) {cerr << x;}
+void __print(char x) {cerr << '\'' << x << '\'';}
+void __print(const char *x) {cerr << '\"' << x << '\"';}
+void __print(const string &x) {cerr << '\"' << x << '\"';}
+void __print(bool x) {cerr << (x ? "true" : "false");}
+template<typename T, typename V>
+void __print(const pair<T, V> &x) {cerr << '{'; __print(x.first); cerr << ','; __print(x.second); cerr << '}';}
+template<typename T>
+void __print(const T &x) {int f = 0; cerr << '{'; for (auto &i: x) cerr << (f++ ? "," : ""), __print(i); cerr << "}";}
+void _print() {cerr << "]\n";}
+template <typename T, typename... V>
+void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v...);}
+#ifndef ONLINE_JUDGE
+#define debug(x...) cerr << "[" << #x << "] = ["; _print(x)
+#else
+#define debug(x...)
+#endif
 
 Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list){
     int n = list.size();
@@ -104,6 +135,9 @@ void Drawer::DrawT(Gdiplus::Graphics *g, float s, Gdiplus::PointF anchor){
         Gdiplus::Matrix Ma;
         T->setTransform(Ma, s, anchor);
         g->SetTransform(&Ma);
+
+        GraphicsPath path;
+        path.StartFigure();
         
         SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
         Font TNR(L"Times New Roman", int(T->getFontSize() * s));
@@ -115,15 +149,23 @@ void Drawer::DrawT(Gdiplus::Graphics *g, float s, Gdiplus::PointF anchor){
         }
         wstring wstr(size_needed, L'\0');
         mbstowcs(&wstr[0], T->getText().c_str(), size_needed);
+
         Shapes::Point p = T->getTop();
+
         p.SetY(p.GetY() - 1.33 * T->getFontSize());
+
+        FontFamily FFamily(L"Times New Roman");
+
+        // path.AddString(wstr.c_str(), -1, &FFamily, 0, REAL(T->getFontSize()), {p.GetX() * s, p.GetY() * s}, NULL);
+
         g->DrawString(wstr.c_str(), -1, &TNR, {p.GetX() * s, p.GetY() * s}, &b);
+
         g->ResetTransform();
     }
 }
 
 void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
-/*    Shapes::Path* PathPtr = dynamic_cast <Shapes::Path*> (shapeList.front().get());
+    Shapes::Path* PathPtr = dynamic_cast <Shapes::Path*> (shapeList.front().get());
     if(PathPtr == NULL)
         return;
     Shapes::Path P = *PathPtr;
@@ -136,255 +178,246 @@ void Drawer::DrawP(Gdiplus::Graphics* g, float s, PointF anchor){
     Pen p(Color(P.getStroke().GetAlpha()*255, P.getStroke().GetRed(), P.getStroke().GetGreen(), P.getStroke().GetBlue()), P.getStrokeWidth() * s);
     SolidBrush b(Color(P.getColor().GetAlpha()*255, P.getColor().GetRed(), P.getColor().GetGreen(), P.getColor().GetBlue()));
 
-    vector<char> cmd = P.getCmd();
-    vector<float> coor = P.getCoor();
+    int size = P.getCmd().size();
+
+    vector<Shapes::Command> cmd = P.getCmd();
 
     int pos = 0;
-    float CurrX = 0;
-    float CurrY = 0;
-    float PrevX = 0;
-    float PrevY = 0;
-    float Prev_CurveX = 0;
-    float Prev_CurveY = 0;
+    //all command has to update cur and pre accordingly
+    PointF cur;     //current position of pen
+    PointF pre;     // 1 point before cur. cur will be updated first then AddLine or watever before updating pre
+    PointF preCurve;    //previous control point, used and updated when handle command curve, quaratic,...
 
     path.StartFigure();
     
-    for (int i = 0; i < cmd.size(); i++){
-        cout << cmd[i] << '\n';
-        if (cmd[i] == 'M' || cmd[i] == 'm'){
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
+    char end = cmd.back().getCmd();
 
-            if (cmd[i] == 'M'){
-                path.AddLine((PointF){CurrX, CurrY}, (PointF){CurrX, CurrY});
+    for (int i = 0; i < size; i++){
+        char c = cmd[i].getCmd();
 
-                PrevX = CurrX;
-                PrevY = CurrY;
-                cout << "Move (absolute)\n";
-            }
-            else {
-                path.AddLine((PointF){PrevX + CurrX, PrevY + CurrY}, (PointF){PrevX + CurrX, PrevY + CurrY});
+        vector<PointF> coor = cmd[i].getPoints();
 
-                PrevX += CurrX;
-                PrevY += CurrY;
-                cout << "Move (relative)\n";
-            }
-            
-            pos+=2;
+        for (int i = 0; i < coor.size(); i++){
+            coor[i].X *= s;
+            coor[i].Y *= s;
         }
-        else if (cmd[i] == 'L' || cmd[i] == 'l'){
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
 
-            if (cmd[i] == 'L'){
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){CurrX, CurrY});
-
-                PrevX = CurrX;
-                PrevY = CurrY;
-                cout << "Line (absolute)\n";
+        if (c == 'M' || c == 'm'){
+            int pSize = coor.size();
+            if (c == 'M'){
+                pre = cur = coor.front();
+                if (pSize == 1){
+                    path.AddLine(coor[0], coor[0]);
+                }else{
+                    for (int j = 0; j < coor.size() - 1; j++){
+                        path.AddLine(coor[j], coor[j + 1]);
+                    }
+                }
             }
             else {
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX + CurrX, PrevY + CurrY});
+                if (pSize == 1){
+                    path.AddLine(coor[0], coor[0]);
+                    cur = coor[0];
+                }else{
+                    path.AddLine(coor[0], coor[1] + coor[0]);
+                    for (int j = 1; j < coor.size() - 1; j++){
+                        cur = coor[j + 1] + coor[j];
+                        path.AddLine(coor[j] + coor[j - 1], cur);
+                    }
+                }
+                pre = cur;
+            }
+        }
+        else if (c == 'L' || c == 'l'){
+            if (c == 'L'){
+                pre = cur = coor.back();
+                path.AddLine(pre, coor[0]);
+            }
+            else {
+                cur = coor.back() + pre;
+                path.AddLine(pre, cur);
 
-                PrevX += CurrX;
-                PrevY += CurrY;
+                pre = cur;
                 cout << "Line (relative)\n";
             }
-
-            pos += 2;
         }
-        else if (cmd[i] == 'H' || cmd[i] == 'h'){
-            CurrX = coor[pos];
+        else if (c == 'H' || c == 'h'){
+            cur = coor.back();
+            cur.Y = pre.Y;
+            if (c == 'H'){
+                
+                path.AddLine(pre, cur);
 
-            if (cmd[i] == 'H'){
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){CurrX, PrevY});
-
-                PrevX = CurrX;
+                pre = cur;
                 cout << "Horizontal Line (absolute)\n";
             }
             else {
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX + CurrX, PrevY});
+                cur.X = cur.X + pre.X;
                 
-                PrevX += CurrX;
+                path.AddLine(pre, cur);
+                
+                pre = cur;
                 cout << "Horizontal Line (relative)\n";
             }
-
-            pos++;
         }
-        else if (cmd[i] == 'V' || cmd[i] == 'v'){
-            CurrY = coor[pos];
-            
-            if (cmd[i] == 'V'){
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX, CurrY});
+        else if (c == 'V' || c == 'v'){
+            cur = coor.back();
+            cur.X = pre.X;
+            if (c == 'V'){
+                path.AddLine(pre, cur);
+                pre = cur;
 
-                PrevY = CurrY;
                 cout << "Vertical Line (absolute)\n";
             }
             else {
-                path.AddLine((PointF){PrevX, PrevY}, (PointF){PrevX, PrevY + CurrY});
-                
-                PrevY += CurrY;
+                cur.Y = cur.Y + pre.Y;
+                path.AddLine(pre, cur);
+                pre = cur;
+
                 cout << "Vertical (relative)\n";
             }
-
-            pos++;
         }
-        else if (cmd[i] == 'C'){
-            float Control_P1_X = coor[pos++];
-            float Control_P1_Y = coor[pos++];
-            float Control_P2_X = coor[pos++];
-            float Control_P2_Y = coor[pos++];
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
+        else if (c == 'C'){
+            Gdiplus::PointF Control1 = coor[0];
+            Gdiplus::PointF Control2 = coor[1];
+            cur = coor[2];
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier(pre, Control1, Control2, cur);
             
-            PrevX = CurrX;
-            PrevY = CurrY;
-            Prev_CurveX = Control_P2_X;
-            Prev_CurveY = Control_P2_Y;
-            pos+=2;
+            pre = cur;
+            preCurve = Control2;
+
             cout << "Cubic Bezier (absolute)\n";
         }
-        else if (cmd[i] == 'c'){
-            float Offset_P1_X = coor[pos++];
-            float Offset_P1_Y = coor[pos++];
-            float Offset_P2_X = coor[pos++];
-            float Offset_P2_Y = coor[pos++];
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
-
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){PrevX + Offset_P1_X, PrevY + Offset_P1_Y}, (PointF){PrevX + Offset_P2_X, PrevY + Offset_P2_Y}, (PointF){PrevX + CurrX, PrevY + CurrY});
+        else if (c == 'c'){
+            // debug(pre.X, pre.Y);
+            PointF Control1 = pre + coor[0];
+            PointF Control2 = pre + coor[1];
+            cur = pre + coor[2];
+            // debug (cur.X, cur.Y, Control1.X, Control1.Y);
+            // debug(Control2.X, Control2.Y);
+            path.AddBezier(pre, Control1, Control2, cur);
             
-            Prev_CurveX = PrevX + Offset_P2_X;
-            Prev_CurveY = PrevY + Offset_P2_Y;
-            PrevX += CurrX;
-            PrevY += CurrY;
-            pos+=2;
+            preCurve = Control2;
+            pre = cur;
             cout << "Cubic Bezier (relative)\n";
         }
-        else if (cmd[i] == 'S'){
-            float Control_P1_X = 2 * PrevX - Prev_CurveX;
-            float Control_P1_Y = 2 * PrevY - Prev_CurveY;
-            float Control_P2_X = coor[pos++];
-            float Control_P2_Y = coor[pos++];
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
+        else if (c == 'S'){
+            PointF Control1 = pre + pre - preCurve;
+            PointF Control2 = coor[0];
+            cur = coor[1];
             
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier(pre, Control1, Control2, cur);
             
-            PrevX = CurrX;
-            PrevY = CurrY;
-            Prev_CurveX = Control_P2_X;
-            Prev_CurveY = Control_P2_Y;
-            pos+=2;
+            pre = cur;
+            preCurve = Control2;
+
             cout << "Smooth Cubic Bezier (absolute)\n";
         }
-        else if (cmd[i] == 's'){
-            float Control_P1_X = 2 * PrevX - Prev_CurveX;
-            float Control_P1_Y = 2 * PrevY - Prev_CurveY;
-            float Offset_P2_X = coor[pos++];
-            float Offset_P2_Y = coor[pos++];
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
+        else if (c == 's'){
+            PointF Control1 = pre + pre - preCurve;
+            PointF Control2 = pre + coor[0];
+            PointF cur = pre + coor[1];
             
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){PrevX + Offset_P2_X, PrevY + Offset_P2_Y}, (PointF){PrevX + CurrX, PrevY + CurrY});
+            path.AddBezier(pre, Control1, Control2, cur);
             
-            Prev_CurveX = PrevX + Offset_P2_X;
-            Prev_CurveY = PrevY + Offset_P2_Y;
-            PrevX += CurrX;
-            PrevY += CurrY;
-            pos+=2;
+            preCurve = Control2;
+            pre = cur;
+
             cout << "Smooth Cubic Bezier (relative)\n";
         }
-        else if (cmd[i] == 'Q'){
-            float Quad_X = coor[pos++];
-            float Quad_Y = coor[pos++];
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
-            float Control_P1_X = PrevX + (2 * (Quad_X - PrevX))/3.0;
-            float Control_P1_Y = PrevY + (2 * (Quad_Y - PrevY))/3.0;
-            float Control_P2_X = CurrX + (2 * (Quad_X - CurrX))/3.0;
-            float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
+        else if (c == 'Q'){
+            PointF Quad = coor[0];
+            cur = coor[1];
+
+            PointF Control1 = pre;
+            Control1.X += 2 * (Quad.X - pre.X) / 3.0;
+            Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
+
+            PointF Control2 = cur;
+            Control2.X += 2 * (Quad.X - cur.X) / 3.0;
+            Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
+            
             // cout << PrevX << ' ' << PrevY << ' ' << Prev_CurveX << ' ' << Prev_CurveY << ' ' << Control_P1_X << ' ' << Control_P1_Y << ' ' << Control_P2_X << ' ' << Control_P2_Y << ' ' << CurrX << ' ' << CurrY << '\n';
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            path.AddBezier(pre, Control1, Control2, cur);
 
-            PrevX = CurrX;
-            PrevY = CurrY;
-            Prev_CurveX = Control_P2_X;
-            Prev_CurveY = Control_P2_Y;
-            pos+=2;
+            pre = cur;
+            preCurve = Control2;
             cout << "Quadratic Bezier (absolute)\n";
         }
-        else if (cmd[i] == 'q'){
-            float Quad_X = PrevX + coor[pos++];
-            float Quad_Y = PrevY + coor[pos++];
-            CurrX = PrevX + coor[pos];
-            CurrY = PrevY + coor[pos+1];
-            float Control_P1_X = PrevX + (2 * (Quad_X - PrevX))/3.0;
-            float Control_P1_Y = PrevY + (2 * (Quad_Y - PrevY))/3.0;
-            float Control_P2_X = CurrX + (2 * (Quad_X - CurrX))/3.0;
-            float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
+        else if (c == 'q'){
+            PointF Quad = pre + coor[0];
+            cur = pre + coor[1];
 
+            PointF Control1 = pre;
+            Control1.X += 2 * (Quad.X - pre.X) / 3.0;
+            Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            PointF Control2 = cur;
+            Control2.X += 2 * (Quad.X - cur.X) / 3.0;
+            Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
 
-            Prev_CurveX = Control_P2_X;
-            Prev_CurveY = Control_P2_Y; 
-            PrevX = CurrX;
-            PrevY = CurrY;
-            pos+=2;
+            path.AddBezier(pre, Control1, Control2, cur);
+
+            preCurve = Control2;
+            pre = cur;
+
             cout << "Quadratic Bezier (relative)\n";
         }
-        else if (cmd[i] == 'T'){
-            float Quad_X = 2 * PrevX - Prev_CurveX;
-            float Quad_Y = 2 * PrevY - Prev_CurveY;
-            CurrX = coor[pos];
-            CurrY = coor[pos+1];
-            float Control_P1_X = PrevX + (2 * (Quad_X - PrevX))/3.0;
-            float Control_P1_Y = PrevY + (2 * (Quad_Y - PrevY))/3.0;
-            float Control_P2_X = CurrX + (2 * (Quad_X - CurrX))/3.0;
-            float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
+        else if (c == 'T'){
+            PointF Quad = pre + pre - preCurve;
+            cur = coor[0];
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            PointF Control1 = pre;
+            Control1.X += 2 * (Quad.X - pre.X) / 3.0;
+            Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            PrevX = CurrX;
-            PrevY = CurrY;
-            Prev_CurveX = Control_P2_X;
-            Prev_CurveY = Control_P2_Y;
-            pos+=2;
+            PointF Control2 = cur;
+            Control2.X += 2 * (Quad.X - cur.X) / 3.0;
+            Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
+
+            path.AddBezier(pre, Control1, Control2, cur);
+
+            pre = cur;
+            preCurve = Control2;
+
             cout << "Smooth Quadratic Bezier (absolute)\n";
         }
-        else if (cmd[i] == 't'){
-            float Quad_X = 2 * PrevX - Prev_CurveX;
-            float Quad_Y = 2 * PrevY - Prev_CurveY;
-            CurrX = PrevX + coor[pos];
-            CurrY = PrevY + coor[pos+1];
-            float Control_P1_X = PrevX + (2 * (Quad_X - PrevX))/3.0;
-            float Control_P1_Y = PrevY + (2 * (Quad_Y - PrevY))/3.0;
-            float Control_P2_X = CurrX + (2 * (Quad_X - CurrX))/3.0;
-            float Control_P2_Y = CurrY + (2 * (Quad_Y - CurrY))/3.0;
+        else if (c == 't'){
+            PointF Quad = pre + pre - preCurve;
+            cur = pre + coor[0];
 
-            path.AddBezier((PointF){PrevX, PrevY}, (PointF){Control_P1_X, Control_P1_Y}, (PointF){Control_P2_X, Control_P2_Y}, (PointF){CurrX, CurrY});
+            PointF Control1 = pre;
+            Control1.X += 2 * (Quad.X - pre.X) / 3.0;
+            Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            PrevX = CurrX;
-            PrevY = CurrY;
-            Prev_CurveX = Control_P2_X;
-            Prev_CurveY = Control_P2_Y;
-            pos+=2;
+            PointF Control2 = cur;
+            Control2.X += 2 * (Quad.X - cur.X) / 3.0;
+            Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
+
+            path.AddBezier(pre, Control1, Control2, cur);
+
+            pre = cur;
+            preCurve = Control2;
+
             cout << "Smooth Quadratic Bezier (relative)\n";
         }
-        else if (cmd[i] == 'Z' || cmd[i] == 'z'){
+        else if (c == 'Z' || c == 'z'){
             path.CloseFigure();
+            g->DrawPath(&p, &path);
+            g->FillPath(&b, &path);
+            g->ResetTransform();
+            path.Reset();
+            path.StartFigure();
             cout << "Close\n";
         }
     }
-
-    g->DrawPath(&p, &path);
-    g->FillPath(&b, &path);
-    g->ResetTransform();
-    */
+    if (end != 'z' && end != 'Z'){
+        g->DrawPath(&p, &path);
+        g->FillPath(&b, &path);
+        g->ResetTransform();
+    }
 }
 
 void Drawer::Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
