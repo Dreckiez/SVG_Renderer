@@ -156,6 +156,43 @@ void Shapes::Point::SetPoint(float a, float b){
 
 Shapes::Object::Object(){
     stroke_width = 0;
+    stroke.SetAlpha(0);
+}
+
+void Shapes::Object::CopyAttribute(const Object &other){
+    color = other.color;
+    stroke = other.stroke;
+    stroke_width = other.stroke_width;
+    Transform = other.Transform;
+}
+
+void Shapes::Object::SetAttribute(XMLElement* E){
+    const char* C = E->Attribute("fill");
+    const char* S = E->Attribute("stroke");
+    const char* T = E->Attribute("transform");
+    
+    
+    if (T != nullptr) setTransformString(T);
+    if (C != nullptr){
+        string tmp = C;
+        SetColor(tmp);
+    }
+    if (S != nullptr){
+        string tmp = S;
+        SetStroke(tmp);
+        
+    }
+
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        SetColorAlpha((float)atof(check));
+
+    check = E->Attribute("stroke-opacity");
+
+    if (check != nullptr)
+        SetStrokeAlpha((float)atof(check));
+        
+    setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
 }
 
 void Shapes::Object::SetColor(string s){
@@ -163,6 +200,7 @@ void Shapes::Object::SetColor(string s){
 }
 
 void Shapes::Object::SetStroke(string s){
+    stroke.SetAlpha(1);
     stroke.SetRGB(s);
 }
 
@@ -380,7 +418,7 @@ Shapes::Text::Text(){
     top.SetPoint(0,0);
     font_size = 0;
     text = "";
-    cout << "Text constructor" << endl;
+    cout << "Text constructed\n";
 }
 
 Shapes::Point Shapes::Text::getTop(){
@@ -429,5 +467,32 @@ vector<float> Shapes::Path::getCoor(){
     return coor;
 }
 
+Shapes::Group::Group(){
+    cout << "Group constructed\n";
+}
 
+void Shapes::Group::AddShapes(Shapes::Object* obj){
+    Shapes_List.push_back(obj);
+}
+
+Shapes::Object* Shapes::Group::GetShape(int idx){
+    if (idx >= Shapes_List.size()) return nullptr;
+    return Shapes_List[idx];
+}
+
+int Shapes::Group::GetSize(){
+    return Shapes_List.size();
+}
+
+/* Shapes::Object* Shapes::Group::operator[](int idx) const{
+    if (idx >= Shapes_List.size()) return nullptr;
+    return Shapes_List[idx];
+} */
+
+Shapes::Group::~Group(){
+    for (int i = 0; i < Shapes_List.size(); i++){
+        delete Shapes_List[i];
+    }
+    Shapes_List.clear();
+}
 

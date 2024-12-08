@@ -55,6 +55,9 @@ namespace Shapes{
         Object();
         virtual ~Object() = default;
 
+        void SetAttribute(XMLElement* E);
+        void CopyAttribute(const Object &other);
+
         void SetColor(string s);
         void SetStroke(string s);
         void SetColorAlpha(float alpha);
@@ -184,6 +187,23 @@ namespace Shapes{
 
         void addCmd(char c);
         void addCoor(float coordinate);
+    };
+
+    class Group:public Object{
+    private:
+        vector<Object*> Shapes_List;
+    public:
+        Group();
+        void AddShapes(Object* obj);
+
+        Object* GetShape(int idx);
+
+
+        int GetSize();
+
+        // Object* operator[](int idx) const;
+
+        ~Group();
     };
 
     

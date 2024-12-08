@@ -138,9 +138,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
                     list.push_back(std::move(ptr));
                 }
+                else if (name == "g"){
+                    unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Group>();
+                    reader.ReadGroup(dynamic_cast<Shapes::Group*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
+                }
             }
-            Drawer drawer(list);
-            drawer.Draw(&graphics, scale, anchor);
+            Drawer drawer(list, &graphics, scale, anchor);
+            drawer.Draw();
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
             EndPaint(hwnd, &ps);
