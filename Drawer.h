@@ -7,8 +7,11 @@
 class Drawer{
 private:
     vector <unique_ptr<Shapes::Object>> shapeList;
+    float s;
+    Gdiplus::PointF anchor;
+    Gdiplus::Graphics* g;
 public:
-    Drawer(vector<unique_ptr<Shapes::Object>>& list);
+    Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
     void DrawR(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
     void DrawL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
     void DrawC(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
@@ -17,6 +20,8 @@ public:
     void DrawPL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
     void DrawT(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
     void DrawP(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+    void DrawG(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+    
     void Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
 };    
 

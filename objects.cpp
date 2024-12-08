@@ -13,6 +13,7 @@
 using namespace std;
 using namespace Gdiplus;
 using namespace tinyxml2;
+using namespace Shapes;
 
 
 
@@ -30,36 +31,36 @@ bool isNum(char c){
     return false;
 }
 
-Shapes::RGBA::RGBA(){
+RGBA::RGBA(){
     red = 0;
     green = 0;
     blue = 0;
     opacity = 0;
 }
 
-int Shapes::RGBA::GetRed(){
+int RGBA::GetRed(){
     return red;
 }
 
-int Shapes::RGBA::GetGreen(){
+int RGBA::GetGreen(){
     return green;
 }
 
-int Shapes::RGBA::GetBlue(){
+int RGBA::GetBlue(){
     return blue;
 }
 
-float Shapes::RGBA::GetAlpha(){
+float RGBA::GetAlpha(){
     return opacity;
 }
 
-void Shapes::RGBA::SetRGB(int r, int g, int b){
+void RGBA::SetRGB(int r, int g, int b){
     red = r;
     green = g;
     blue = b;
 }
 
-void Shapes::RGBA::SetAlpha(float a){
+void RGBA::SetAlpha(float a){
     opacity = a;
 }
 
@@ -94,11 +95,26 @@ void Shapes::Point::SetPoint(float a, float b){
     y = b;
 }
 
-Shapes::Object::Object(){
+Object::Object(){
     stroke_width = 0;
 }
 
-void Shapes::Object::SetColor(string s, float alpha){
+Object::Object(const Object& obj){
+    this->color = obj.color;
+    this->stroke = obj.stroke;
+    this->stroke_width = obj.stroke_width;
+    this->Transform = obj.Transform;
+}
+
+void Object::copy(const Object& obj){
+    this->color = obj.color;
+    this->stroke = obj.stroke;
+    this->stroke_width = obj.stroke_width;
+    this->Transform = obj.Transform;
+    cout << "called copy\n";
+}
+
+void Object::SetColor(string s, float alpha){
     int r,g,b;
     if (s == "none")
         alpha = 0;
@@ -109,7 +125,7 @@ void Shapes::Object::SetColor(string s, float alpha){
     color.SetAlpha(alpha);
 }
 
-void Shapes::Object::SetStroke(string s, float alpha){
+void Object::SetStroke(string s, float alpha){
     int r,g,b;
     if (s == "none")
         alpha = 0;
@@ -120,7 +136,7 @@ void Shapes::Object::SetStroke(string s, float alpha){
     stroke.SetAlpha(alpha);
 }
 
-void Shapes::Object::StringToRGB(int &r, int &g, int &b, string s){
+void Object::StringToRGB(int &r, int &g, int &b, string s){
     // cout << s << " ";
     if (s == "none"){
         r = b = g = 0;
@@ -154,27 +170,27 @@ void Shapes::Object::StringToRGB(int &r, int &g, int &b, string s){
     
 }
 
-Shapes::RGBA Shapes::Object::getColor(){
+RGBA Object::getColor(){
     return color;
 }
 
-Shapes::RGBA Shapes::Object::getStroke(){
+RGBA Object::getStroke(){
     return stroke;
 }
 
-void Shapes::Object::setStrokeWidth(float width) {
+void Object::setStrokeWidth(float width) {
     stroke_width = width;
 }
 
-float Shapes::Object::getStrokeWidth(){
+float Object::getStrokeWidth(){
     return stroke_width;
 }
 
-void Shapes::Object::setTransformString(const char* T){
+void Object::setTransformString(const char* T){
     Transform = T;
 }
 
-void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor){
+void Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor){
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
@@ -218,193 +234,223 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     M.Rotate(rotate);
     M.Scale(scale_x, scale_y);
 }
+Object* Object::clone() const {
+    return new Object(*this);
+}
 
 
-Shapes::Line::Line(){
+Line::Line(){
     cout << "Line constructed\n";
 }
 
 // rectang 
-Shapes::Rectangle::Rectangle(){
+Rectangle::Rectangle(){
     height = 0;
     width = 0;
     cout << "Rectangle constructed\n";
 }
 
-void Shapes::Rectangle::setPoint(Point& p) {
+void Rectangle::setPoint(Shapes::Point& p) {
     A = p;
 }
 
-void Shapes::Rectangle::setWidth(float w) {
+void Rectangle::setWidth(float w) {
     width = w;
 }
 
-void Shapes::Rectangle::setHeight(float h) {
+void Rectangle::setHeight(float h) {
     height = h;
 }
 
-Shapes::Point Shapes::Rectangle::getPoint(){
+Shapes::Point Rectangle::getPoint(){
     return A;
 }
 
-float Shapes::Rectangle::getWidth(){
+float Rectangle::getWidth(){
     return width;
 }
 
-float Shapes::Rectangle::getHeight(){
+float Rectangle::getHeight(){
     return height;
 }
 
 
+Shapes::Rectangle* Rectangle::clone() const{
+    return new Rectangle(*this);
+}
+
 // line
 
 
-Shapes::Point Shapes::Line::getStart() {
+Shapes::Point Line::getStart() {
     return start;
 }
 
-Shapes::Point Shapes::Line::getEnd() {
+Shapes::Point Line::getEnd() {
     return end;
 }
 
-void Shapes::Line::setStart(Point& s) {
+void Line::setStart(Shapes::Point& s) {
     start = s;
 }
 
-void Shapes::Line::setEnd(Point& e) {
+void Line::setEnd(Shapes::Point& e) {
     end = e;
+}
+
+Line* Line::clone() const{
+    return new Line(*this);
 }
 
 // circle
 
 
-Shapes::Circle::Circle(){
+Circle::Circle(){
     cout << "Circle constructed\n";
     radius = 0;
 }
 
-Shapes::Point Shapes::Circle::getCenter(){
+Shapes::Point Circle::getCenter(){
     return center;
 }
 
-void Shapes::Circle::setCenter(Point& p) {
+void Circle::setCenter(Shapes::Point& p) {
     center = p;
 }
 
-float Shapes::Circle::getRadius(){
+float Circle::getRadius(){
     return radius;
 }
 
-void Shapes::Circle::setRadius(float r) {
+void Circle::setRadius(float r) {
     radius = r;
 }
+
+Circle* Circle::clone() const{
+    return new Circle(*this);
+}
+
 // ellipse 
-Shapes::Ellipse::Ellipse(){
+Ellipse::Ellipse(){
     cout << "Eclipse constructed\n";
     radius_x = 0;
     radius_y = 0;
 }
 
-Shapes::Point Shapes::Ellipse::getCenter(){
+Shapes::Point Ellipse::getCenter(){
     return center;
 }
 
-void Shapes::Ellipse::setCenter(Point& p) {
+void Ellipse::setCenter(Shapes::Point& p) {
     center = p;
 }
 
-float Shapes::Ellipse::getRadiusX(){
+float Ellipse::getRadiusX(){
     return radius_x;
 }
 
-void Shapes::Ellipse::setRadiusX(float rx) {
+void Ellipse::setRadiusX(float rx) {
     radius_x = rx;
 }
 
-float Shapes::Ellipse::getRadiusY(){
+float Ellipse::getRadiusY(){
     return radius_y;
 }
 
-void Shapes::Ellipse::setRadiusY(float ry) {
+void Ellipse::setRadiusY(float ry) {
     radius_y = ry;
 }
 
+Shapes::Ellipse* Ellipse::clone() const{
+    return new Ellipse(*this);
+}
+
 // polygon
-Shapes::Polygon::Polygon(){
+Polygon::Polygon(){
     cout << "Polygon constructed\n";
 }
 
-vector<Shapes::Point> Shapes::Polygon::getPoints(){
+vector<Shapes::Point> Polygon::getPoints(){
     return Points;
 }
 
-void Shapes::Polygon::setPoints(vector<Point>& pts) {
+void Polygon::setPoints(vector<Shapes::Point>& pts) {
     Points = pts;
+}
+
+Shapes::Polygon* Polygon::clone() const{
+    return new Polygon(*this);
 }
 
 // polyline
-Shapes::Polyline::Polyline(){
+Polyline::Polyline(){
     cout << "Polyline constructed\n";
 }
 
-vector<Shapes::Point> Shapes::Polyline::getPoints(){
+vector<Shapes::Point> Polyline::getPoints(){
     return Points;
 }
 
-void Shapes::Polyline::setPoints(vector<Point>& pts) {
+void Polyline::setPoints(vector<Shapes::Point>& pts) {
     Points = pts;
 }
 
+Shapes::Polyline* Polyline::clone() const{
+    return new Polyline(*this);
+}
+
 // text
-Shapes::Text::Text(){
+Text::Text(){
     top.SetPoint(0,0);
     font_size = 0;
     text = "";
     cout << "Text constructor" << endl;
 }
 
-Shapes::Point Shapes::Text::getTop(){
+Shapes::Point Text::getTop(){
     return top;
 }
 
-void Shapes::Text::setTop(Point& p) {
+void Text::setTop(Shapes::Point& p) {
     top = p;
 }
 
-float Shapes::Text::getFontSize(){
+float Text::getFontSize(){
     return font_size;
 }
 
-void Shapes::Text::setFontSize(float size) {
+void Text::setFontSize(float size) {
     font_size = size;
 }
 
 
-string Shapes::Text::getText(){
+string Text::getText(){
     return text;
 }
 
-void Shapes::Text::setText(string& str) {
+void Text::setText(string& str) {
     text = str;
 }
 
-
+Shapes::Text* Text::clone() const{
+    return new Text(*this);
+}
 
 //command
-Shapes::Command::Command(){
+Command::Command(){
     cmd = ' ';
 }
 
-char Shapes::Command::getCmd() { return cmd; }
-void Shapes::Command::setCmd(char c) { cmd = c; } 
+char Command::getCmd() { return cmd; }
+void Command::setCmd(char c) { cmd = c; } 
 
-vector<Gdiplus::PointF> Shapes::Command::getPoints() { return points; }
+vector<Gdiplus::PointF> Command::getPoints() { return points; }
 
-void Shapes::Command::addPoint(PointF p){
+void Command::addPoint(PointF p){
     points.push_back(p);
 }
 
-string Shapes::Command::toString(){
+string Command::toString(){
     string s = "";
     s += cmd;
     for (int i = 0; i < points.size(); i++){
@@ -414,18 +460,101 @@ string Shapes::Command::toString(){
 }
 
 //path
-Shapes::Path::Path(){}
+Path::Path(){}
 
-vector<Shapes::Command> Shapes::Path::getCmd(){ return cmd; }
+vector<Command> Path::getCmd(){ return cmd; }
 
-Shapes::Command Shapes::Path::getCmdAt(int idx){
+Command Path::getCmdAt(int idx){
     if (idx <= cmd.size())
         return cmd[idx];
     return cmd[0];
 }
 
-void Shapes::Path::add(Command c){
+void Path::add(Command c){
     cmd.push_back(c);
 }
 
+Shapes::Path* Path::clone() const{
+    return new Path(*this);
+}
+
+//group
+Group::Group(){}
+
+void Group::addShapes(Object* obj){
+    if (obj){
+        Object* temp = obj->clone();
+        shapes.push_back(temp);
+    }
+}
+
+vector<Object*> Group::getShapes(){
+    vector<Object*> g;
+    for (int i = 0; i < shapes.size(); i++){
+        Object* temp = new Object(*shapes[i]);
+        g.push_back(temp);
+    }
+    return g;
+}
+
+int Group::getSize(){
+    return shapes.size();
+}
+
+Object* Group::operator [] (int idx) const{
+    if (idx < shapes.size()){
+        return shapes[idx];
+    }
+    return NULL;
+}
+
+string Group::toString(){
+    string s = "";
+    for (int i = 0; i < shapes.size(); i++){
+        Shapes::Object* rawPtr = shapes[i];
+        if(dynamic_cast <Shapes::Rectangle*> (rawPtr)){
+            s += "rect ";
+        }
+        else if(dynamic_cast <Shapes::Line*> (rawPtr)){
+            s += "line ";
+        }
+        else if(dynamic_cast <Shapes::Circle*> (rawPtr)){
+            s += "circle ";
+        }
+        else if(dynamic_cast <Shapes::Ellipse*> (rawPtr)){
+            s += "ellipse ";
+        }
+        else if(dynamic_cast <Shapes::Polygon*> (rawPtr)){
+            s += "polygon ";
+        }
+        else if(dynamic_cast <Shapes::Polyline*> (rawPtr)){
+            s += "polyline ";
+        }
+        else if(dynamic_cast <Shapes::Text*> (rawPtr)){
+            s += "text ";
+        }
+        else if(dynamic_cast <Shapes::Path*> (rawPtr)){
+            s += "path ";
+        }
+        else if(dynamic_cast <Shapes::Group*> (rawPtr)){
+            s += "group ";
+        }
+    }
+    s += to_string(shapes.size()) + " \n";
+    return s;
+}
+
+Shapes::Group* Group::clone() const{
+    return new Group(*this);
+}
+
+Group::~Group(){
+    for (int i = 0; i < shapes.size(); i++){
+        if (shapes[i]){
+            delete shapes[i];
+            shapes[i] = NULL;
+        }
+    }
+    shapes.clear();
+}
 

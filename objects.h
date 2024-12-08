@@ -53,6 +53,10 @@ namespace Shapes{
         string Transform;
     public:
         Object();
+        Object(const Object& obj);
+
+        void copy(const Object& obj);
+
         virtual ~Object() = default;
         void SetColor(string s, float alpha);
         void SetStroke(string s, float alpha);
@@ -66,6 +70,9 @@ namespace Shapes{
 
         void setTransformString(const char* T);
         void setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor);
+
+        virtual Object* clone() const;
+        
     };
 
     class Rectangle:public Object{
@@ -84,7 +91,7 @@ namespace Shapes{
         void setHeight(float h);
         float getHeight();
         
-	    
+	    Rectangle* clone() const override;
     };
 
     class Line:public Object{
@@ -98,6 +105,8 @@ namespace Shapes{
         
         void setEnd(Point& e);
         Point getEnd();
+
+        Line* clone() const override;
     };
 
     class Circle:public Object{
@@ -113,6 +122,7 @@ namespace Shapes{
         float getRadius();
         void setRadius(float r);
         
+        Circle* clone() const override;
     };
 
     class Ellipse:public Object{
@@ -130,6 +140,8 @@ namespace Shapes{
         
         float getRadiusY();
         void setRadiusY(float ry);
+
+        Ellipse* clone() const override;
     };
 
     class Polygon:public Object{
@@ -140,6 +152,8 @@ namespace Shapes{
         
         vector<Point> getPoints();
         void setPoints(vector<Point>& pts);
+
+        Polygon* clone() const override;
     };
 
     class Polyline:public Object{
@@ -150,6 +164,8 @@ namespace Shapes{
        
         vector<Point> getPoints();
         void setPoints(vector<Point>& pts);
+
+        Polyline* clone() const override;
     };
 
     class Text:public Object{
@@ -168,6 +184,8 @@ namespace Shapes{
         
         string getText();
         void setText(string& str);
+
+        Text* clone() const override;
     };
 
     class Command{
@@ -196,8 +214,29 @@ namespace Shapes{
         Command getCmdAt(int idx);
 
         void add(Command c);
+
+        Path* clone() const override;
     };
 
+    class Group : public Object{
+    private:
+        //can contain another Group
+        vector<Object*> shapes; //kepp hold of shapes to draw later
+    public:
+        Group();
+
+        void addShapes(Object* obj);
+
+        int getSize();
+        vector<Object*> getShapes();
+        Object* operator [] (int idx) const;
+
+        string toString();
+
+        Group* clone() const override;
+
+        ~Group();
+    };
 
     class Transform{
     private:

@@ -17,17 +17,36 @@ void Reader::ReadRectangle(Shapes::Rectangle* rect, XMLElement* E) {
     rect->setWidth(E->FloatAttribute("width"));
     rect->setHeight(E->FloatAttribute("height"));
 
+    setAttribute(E, rect);
+    
+}
+
+void Reader::setAttribute(tinyxml2::XMLElement* E, Shapes::Object* obj){
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
     
-    
-    if (T != nullptr) rect->setTransformString(T);
-    if (C != nullptr) rect->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) rect->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-    rect->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
-    
+    if (T != nullptr)
+        obj->setTransformString(T);
+
+    if (C != nullptr){
+        float opacity = 1;
+        if (E->Attribute("fill-opacity") != nullptr)
+            opacity = E->FloatAttribute("fill-opacity");
+        obj->SetColor(C, opacity);
+    }
+
+    if (S != nullptr){
+        float opacity = 1;
+        if (E->Attribute("stroke-opacity") != nullptr)
+            opacity = E->FloatAttribute("stroke-opacity");
+        obj->SetStroke(S, opacity);
+    }
+
+    if (E->Attribute("stroke-width"))
+        obj->setStrokeWidth(E->FloatAttribute("stroke-width"));
 }
+
 void Reader::ReadLine(Shapes::Line* line, XMLElement* E) {
     Shapes::Point start, end;
 
@@ -39,13 +58,7 @@ void Reader::ReadLine(Shapes::Line* line, XMLElement* E) {
     end.SetY(E->FloatAttribute("y2"));
     line->setEnd(end);
 
-    const char* S = E->Attribute("stroke");
-    const char* T = E->Attribute("transform");
-    
-    if (T != nullptr) line->setTransformString(T);
-    if (S != nullptr) line->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-    line->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
-
+    setAttribute(E, line);
 }
 
 
@@ -59,18 +72,8 @@ void Reader::ReadCircle(Shapes::Circle* circle, XMLElement* E) {
 
     circle->setRadius(E->FloatAttribute("r"));
 
-    const char* C = E->Attribute("fill");
-    const char* S = E->Attribute("stroke");
-    const char* T = E->Attribute("transform");
-    
-    if (T != nullptr) circle->setTransformString(T);
-    if (C != nullptr) circle->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) circle->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-
-    circle->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
+    setAttribute(E, circle);
 }
-
-
 
 
 void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
@@ -83,15 +86,7 @@ void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
     ellipse->setRadiusX(E->FloatAttribute("rx"));
     ellipse->setRadiusY(E->FloatAttribute("ry"));
 
-    const char* C = E->Attribute("fill");
-    const char* S = E->Attribute("stroke");
-    const char* T = E->Attribute("transform");
-    
-    if (T != nullptr) ellipse->setTransformString(T);
-    if (C != nullptr) ellipse->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) ellipse->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-
-    ellipse->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
+    setAttribute(E, ellipse);
 }
 
 
@@ -115,15 +110,7 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
     }
     polygon->setPoints(points);
 
-    const char* C = E->Attribute("fill");
-    const char* S = E->Attribute("stroke");
-    const char* T = E->Attribute("transform");
-    
-    if (T != nullptr) polygon->setTransformString(T);
-    if (C != nullptr) polygon->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) polygon->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-
-    polygon->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
+    setAttribute(E, polygon);
 }
 
 
@@ -146,15 +133,7 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
     }
     polyline->setPoints(points);
 
-    const char* C = E->Attribute("fill");
-    const char* S = E->Attribute("stroke");
-    const char* T = E->Attribute("transform");
-    
-    if (T != nullptr) polyline->setTransformString(T);
-    if (C != nullptr) polyline->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) polyline->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-
-    polyline->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
+    setAttribute(E, polyline);
 }
 
 
@@ -176,15 +155,7 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
         text->setText(textStr);
     }
 
-    const char* T = E->Attribute("transform");
-    if (T != nullptr) text->setTransformString(T);
-
-    const char* C = E->Attribute("fill");
-    if (C != nullptr) text->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-
-    const char* S = E->Attribute("stroke");
-    if (S != nullptr) text->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-
+    setAttribute(E, text);
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
@@ -287,25 +258,72 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     // }
     // cout << endl;
 
-    const char* C = E->Attribute("fill");
-    const char* S = E->Attribute("stroke");
-    const char* T = E->Attribute("transform");
+    setAttribute(E, path);
+}
+
+void Reader::ReadGroup(Shapes::Group* group, XMLElement *E){
+    setAttribute(E, group);
+    Shapes::Object* temp = group;
+    Shapes::Object obj(*temp);
     
+    // cout << Child->Name();
 
-    if (T != nullptr)
-        path->setTransformString(T);
-
-    if (C != nullptr){
-        string tmp = C;
-        if (E->Attribute("fill-opacity") != nullptr)
-            path->SetColor(C, E->FloatAttribute("fill-opacity"));
+    for (XMLElement* Child = E->FirstChildElement(); Child != nullptr; Child = Child->NextSiblingElement()){
+        string name = Child->Name();
+        if (name == "rect"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
+            ptr->copy(obj);
+            ReadRectangle(dynamic_cast<Shapes::Rectangle*>(ptr.get()), Child);
+            group->addShapes(ptr.get());
+        }
+        else if (name == "line"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Line>();
+            ptr->copy(obj);
+            ReadLine(dynamic_cast<Shapes::Line*>(ptr.get()), Child);
+            group->addShapes(move(ptr.get()));
+        }
+        else if (name == "circle"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Circle>();
+            ptr->copy(obj);
+            ReadCircle(dynamic_cast<Shapes::Circle*>(ptr.get()), Child); 
+            group->addShapes(move(ptr.get()));
+        }
+        else if (name == "ellipse"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Ellipse>();
+            ptr->copy(obj);
+            ReadEllipse(dynamic_cast<Shapes::Ellipse*>(ptr.get()), Child); 
+            group->addShapes(move(ptr.get()));  
+        }
+        else if (name == "polygon"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Polygon>();
+            ptr->copy(obj);
+            ReadPolygon(dynamic_cast<Shapes::Polygon*>(ptr.get()), Child);
+            group->addShapes(move(ptr.get())); 
+        }
+        else if (name == "polyline"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Polyline>();
+            ptr->copy(obj);
+            ReadPolyline(dynamic_cast<Shapes::Polyline*>(ptr.get()), Child); 
+            group->addShapes(move(ptr.get()));
+        }
+        else if (name == "text"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Text>();
+            ptr->copy(obj);
+            ReadText(dynamic_cast<Shapes::Text*>(ptr.get()), Child);
+            group->addShapes(move(ptr.get()));
+        }
+        else if (name == "path"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
+            ptr->copy(obj);
+            ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), Child);
+            group->addShapes(move(ptr.get()));
+        }else if (name == "g"){
+            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Group>();
+            ptr->copy(obj);
+            ReadGroup(dynamic_cast<Shapes::Group*>(ptr.get()), Child);
+            group->addShapes(move(ptr.get()));
+        }
     }
-
-    if (S != nullptr){
-        string tmp = S;
-        path->SetStroke(tmp, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
-    }
-
-    if (E->Attribute("stroke-width"))
-        path->setStrokeWidth(E->FloatAttribute("stroke-width"));
+    cout << group->getShapes().size() << " ";
+    cout << group->toString();
 }

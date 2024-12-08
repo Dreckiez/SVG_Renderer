@@ -31,7 +31,7 @@ void _print(T t, V... v) {__print(t); if (sizeof...(v)) cerr << ", "; _print(v..
 #define debug(x...)
 #endif
 
-Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list){
+Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
     int n = list.size();
     for(int i = 0; i < n; i++){
         shapeList.push_back(std::move(list[i]));
@@ -77,8 +77,7 @@ void Drawer::DrawC(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
     }
 }
 
-void Drawer::DrawE(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
-    if(Shapes::Ellipse* E = dynamic_cast <Shapes::Ellipse*> (shapeList.front().get())){
+void Drawer::DrawE(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, Shapes::Ellipse* E){
         Gdiplus::Matrix Ma;
         E->setTransform(Ma, s, anchor);
         g->SetTransform(&Ma);
@@ -88,8 +87,8 @@ void Drawer::DrawE(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
         g->FillEllipse(&b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
         g->DrawEllipse(&p, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
         g->ResetTransform();
-    }
 }
+
 
 void Drawer::DrawPG(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
     vector<Gdiplus::PointF> list;
@@ -443,10 +442,103 @@ void Drawer::Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
         }
         else if(dynamic_cast <Shapes::Text*> (rawPtr)){
             DrawT(g, s, anchor);
-        }else if(dynamic_cast <Shapes::Path*> (rawPtr)){
+        }
+        else if(dynamic_cast <Shapes::Path*> (rawPtr)){
             DrawP(g, s, anchor);
         }
-        shapeList.erase(shapeList.begin());
+        else if(dynamic_cast <Shapes::Group*> (rawPtr)){
+            Shapes::Group group = *(dynamic_cast<Shapes::Group*> (rawPtr));
+            cout << "draw group ";
+            for (int i = 0; i < group.getSize(); i++){
+                cout << i << " ";
+                Shapes::Object* raw = group[i];
+                if (group[i] == NULL)
+                    cout << "null";
+                if(dynamic_cast <Shapes::Rectangle*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawR(g,s,anchor);
+                }
+                else if(dynamic_cast <Shapes::Line*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawL(g, s, anchor);
+                }
+                else if(dynamic_cast <Shapes::Circle*> (raw)){
+                    cout << "c ";
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawC(g, s, anchor);
+                }
+                else if(dynamic_cast <Shapes::Ellipse*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawE(g, s, anchor);
+                }
+                else if(dynamic_cast <Shapes::Polygon*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawPG(g, s, anchor);
+                }
+                else if(dynamic_cast <Shapes::Polyline*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawPL(g, s, anchor);
+                }
+                else if(dynamic_cast <Shapes::Text*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawT(g, s, anchor);
+                }
+                else if(dynamic_cast <Shapes::Path*> (raw)){
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    DrawP(g, s, anchor);
+                }else if(dynamic_cast <Shapes::Group*> (raw)){
+                    cout << "g ";
+                    unique_ptr<Shapes::Object> ptr(group[i]->clone());
+                    shapeList.insert(shapeList.begin(), move(ptr));
+                    break;
+                }
+                shapeList.erase(shapeList.begin());
+            }
+            cout << group.toString();
+        }
+        if(dynamic_cast <Shapes::Rectangle*> (shapeList.front().get())){
+            cout << "Group1\n";
+        }
+        else if(dynamic_cast <Shapes::Line*> (shapeList.front().get())){
+            cout << "Group2\n";
+        }
+        else if(dynamic_cast <Shapes::Circle*> (shapeList.front().get())){
+            cout << "Group3\n";
+        }
+        else if(dynamic_cast <Shapes::Ellipse*> (shapeList.front().get())){
+            cout << "Group4\n";
+        }
+        else if(dynamic_cast <Shapes::Polygon*> (shapeList.front().get())){
+            cout << "Group5\n";
+        }
+        else if(dynamic_cast <Shapes::Polyline*> (shapeList.front().get())){
+            cout << "Group6\n";
+        }
+        else if(dynamic_cast <Shapes::Text*> (shapeList.front().get())){
+            cout << "Group7\n";
+        }
+        else if(dynamic_cast <Shapes::Path*> (shapeList.front().get())){
+            cout << "Group8\n";
+        }
+        if (dynamic_cast<Shapes::Group*> (shapeList.front().get())){
+            cout << "Group9\n";
+        }
+        if (shapeList.front() == NULL)
+            cout << "null";
+        else{
+            cout << "sizeip : " << shapeList.size() << endl;
+            shapeList.erase(shapeList.begin());
+            cout << "erased";
+        }
     }
+    cout << "lop end";
 }
 

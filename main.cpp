@@ -71,7 +71,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_PAINT:{
             tinyxml2::XMLDocument doc;
-            doc.LoadFile("sample.svg");
+            doc.LoadFile("svg-05.svg");
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             Graphics graphics(hdc);
@@ -136,9 +136,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
                     reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
                     list.push_back(std::move(ptr));
+                }else if (name == "g"){
+                    unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Group>();
+                    reader.ReadGroup(dynamic_cast<Shapes::Group*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
                 }
             }
-            Drawer drawer(list);
+            Drawer drawer(list, &graphics, scale, anchor);
+            cout << "list" << list.size() << endl;
             drawer.Draw(&graphics, scale, anchor);
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
