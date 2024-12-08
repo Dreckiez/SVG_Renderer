@@ -34,7 +34,7 @@ Shapes::RGBA::RGBA(){
     red = 0;
     green = 0;
     blue = 0;
-    opacity = 0;
+    opacity = 1;
 }
 
 int Shapes::RGBA::GetRed(){
@@ -53,14 +53,74 @@ float Shapes::RGBA::GetAlpha(){
     return opacity;
 }
 
-void Shapes::RGBA::SetRGB(int r, int g, int b){
-    red = r;
-    green = g;
-    blue = b;
-}
-
 void Shapes::RGBA::SetAlpha(float a){
     opacity = a;
+}
+
+void Shapes::RGBA::SetRGB(string s){
+    // cout << s << " ";
+    if (s == "none"){
+        opacity = 0;
+    }
+    else if (s.find('#') != string::npos){
+        // HEX CODE format
+        if (s.size() == 4){
+            red = stoi(string(2, s[1]), nullptr, 16);
+            green = stoi(string(2, s[2]), nullptr, 16);
+            blue = stoi(string(2, s[3]), nullptr, 16);
+        }
+        else if (s.size() == 7){
+            red = stoi(s.substr(1,2), nullptr, 16);
+            green = stoi(s.substr(3,2), nullptr, 16);
+            blue = stoi(s.substr(5,2), nullptr, 16);
+        }
+    }
+    else if (namedColors.find(s) != namedColors.end()){
+        //Color Name
+        tie(red, green, blue) = namedColors[s];
+    }
+    else if (s.find("hsl") != string::npos){
+        s.erase(0,4);
+        s.erase(s.size()-1, 1);
+        for (int i = 0; i < s.size(); i++){
+            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
+            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
+        }
+
+        int H,S,L;
+        double C, X, m, tmp_r, tmp_g, tmp_b;
+
+        stringstream ss(s);
+        ss >> H >> S >> L;
+
+        C = (1 - abs(2 * L/100.0 - 1)) * S/100.0;
+        double tmp = H/60.0;
+        tmp = tmp - (int)(tmp/2) * 2;
+        X = C * (1 - abs(tmp - 1));
+
+    }
+    else if (s.find("rgba") != string::npos){
+        // RGBA format
+        s.erase(0,5);
+        s.erase(s.size()-1, 1);
+        for (int i = 0; i < s.size(); i++){
+            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
+            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
+        }
+        stringstream ss(s);
+        ss >> red >> green >> blue >> opacity;
+    }
+    else {
+        // RGB format
+        s.erase(0,4);
+        s.erase(s.size()-1, 1);
+        for (int i = 0; i < s.size(); i++){
+            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
+            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
+        }
+        stringstream ss(s);
+        ss >> red >> green >> blue;
+    }
 }
 
 Shapes::Point::Point(){
@@ -98,59 +158,20 @@ Shapes::Object::Object(){
     stroke_width = 0;
 }
 
-void Shapes::Object::SetColor(string s, float alpha){
-    int r,g,b;
-    if (s == "none")
-        alpha = 0;
+void Shapes::Object::SetColor(string s){
+    color.SetRGB(s);
+}
 
-    StringToRGB(r,g,b,s);
+void Shapes::Object::SetStroke(string s){
+    stroke.SetRGB(s);
+}
 
-    color.SetRGB(r,g,b);
+void Shapes::Object::SetColorAlpha(float alpha){
     color.SetAlpha(alpha);
 }
 
-void Shapes::Object::SetStroke(string s, float alpha){
-    int r,g,b;
-    if (s == "none")
-        alpha = 0;
-
-    StringToRGB(r,g,b,s);
-
-    stroke.SetRGB(r,g,b);
+void Shapes::Object::SetStrokeAlpha(float alpha){
     stroke.SetAlpha(alpha);
-}
-
-void Shapes::Object::StringToRGB(int &r, int &g, int &b, string s){
-    // cout << s << " ";
-    size_t hex = s.find('#');
-    if (hex != string::npos){
-        // cout << "hex ";
-        if (s.size() == 4){
-            r = stoi(string(2, s[1]), nullptr, 16);
-            g = stoi(string(2, s[2]), nullptr, 16);
-            b = stoi(string(2, s[3]), nullptr, 16);
-        }else if (s.size() == 7){
-            r = stoi(s.substr(1,2), nullptr, 16);
-            g = stoi(s.substr(3,2), nullptr, 16);
-            b = stoi(s.substr(5,2), nullptr, 16);
-        }
-    }else if (namedColors.find(s) != namedColors.end()){
-        // cout << "named ";
-         tie(r, g, b) = namedColors[s];
-    }else{
-        // cout << "rgb ";
-        s.erase(0,4);
-        s.erase(s.size()-1, 1);
-        for (int i = 0; i < s.size(); i++){
-            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
-            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
-        }
-
-        stringstream ss(s);
-        ss >> r >> g >> b;
-    }
-    // cout << r << " " << g << " " << b << endl;
-    
 }
 
 Shapes::RGBA Shapes::Object::getColor(){

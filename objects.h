@@ -28,8 +28,8 @@ namespace Shapes{
         int GetGreen();
         int GetBlue();
         float GetAlpha();
-        void SetRGB(int r, int g, int b);
         void SetAlpha(float a);
+        void SetRGB(string s);
     };
 
     class Point{
@@ -54,10 +54,12 @@ namespace Shapes{
     public:
         Object();
         virtual ~Object() = default;
-        void SetColor(string s, float alpha);
-        void SetStroke(string s, float alpha);
 
-        void StringToRGB(int &r, int &g, int &b, string s);
+        void SetColor(string s);
+        void SetStroke(string s);
+        void SetColorAlpha(float alpha);
+        void SetStrokeAlpha(float alpha);
+
         Shapes::RGBA getColor();
         Shapes::RGBA getStroke();
 

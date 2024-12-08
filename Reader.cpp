@@ -19,8 +19,25 @@ void Reader::ReadRectangle(Shapes::Rectangle* rect, XMLElement* E) {
     
     
     if (T != nullptr) rect->setTransformString(T);
-    if (C != nullptr) rect->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) rect->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+    if (C != nullptr){
+        string tmp = C;
+        rect->SetColor(tmp);
+    }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        rect->SetColorAlpha((float)atof(check));
+    
+    if (S != nullptr){
+        string tmp = S;
+        rect->SetStroke(tmp);
+        
+    }
+
+    check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        rect->SetStrokeAlpha((float)atof(check));
+        
     rect->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
     
 }
@@ -39,7 +56,15 @@ void Reader::ReadLine(Shapes::Line* line, XMLElement* E) {
     const char* T = E->Attribute("transform");
     
     if (T != nullptr) line->setTransformString(T);
-    if (S != nullptr) line->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+    if (S != nullptr){
+        string tmp = S;
+        line->SetStroke(tmp);
+    }
+
+    const char* check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        line->SetStrokeAlpha((float)atof(check));
+
     line->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
 
 }
@@ -60,8 +85,23 @@ void Reader::ReadCircle(Shapes::Circle* circle, XMLElement* E) {
     const char* T = E->Attribute("transform");
     
     if (T != nullptr) circle->setTransformString(T);
-    if (C != nullptr) circle->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) circle->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+    if (C != nullptr){
+        string tmp = C;
+        circle->SetColor(tmp);
+    }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        circle->SetColorAlpha((float)atof(check));
+
+    if (S != nullptr){
+        string tmp = S;
+        circle->SetStroke(tmp);
+    }
+    
+    check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        circle->SetStrokeAlpha((float)atof(check));
 
     circle->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
 }
@@ -84,8 +124,23 @@ void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
     const char* T = E->Attribute("transform");
     
     if (T != nullptr) ellipse->setTransformString(T);
-    if (C != nullptr) ellipse->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) ellipse->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+    if (C != nullptr){
+        string tmp = C;
+        ellipse->SetColor(tmp);
+    }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        ellipse->SetColorAlpha((float)atof(check));
+    
+    if (S != nullptr){
+        string tmp = S;
+        ellipse->SetStroke(tmp);
+    }
+    
+    check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        ellipse->SetStrokeAlpha((float)atof(check));
 
     ellipse->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
 }
@@ -116,8 +171,23 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
     const char* T = E->Attribute("transform");
     
     if (T != nullptr) polygon->setTransformString(T);
-    if (C != nullptr) polygon->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) polygon->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+    if (C != nullptr){
+        string tmp = C;
+        polygon->SetColor(tmp);
+    }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        polygon->SetColorAlpha((float)atof(check));
+    
+    if (S != nullptr){
+        string tmp = S;
+        polygon->SetStroke(tmp);
+    }
+    
+    check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        polygon->SetStrokeAlpha((float)atof(check));
 
     polygon->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
 }
@@ -147,8 +217,23 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
     const char* T = E->Attribute("transform");
     
     if (T != nullptr) polyline->setTransformString(T);
-    if (C != nullptr) polyline->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
-    if (S != nullptr) polyline->SetStroke(S, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+    if (C != nullptr){
+        string tmp = C;
+        polyline->SetColor(tmp);
+    }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        polyline->SetColorAlpha((float)atof(check));
+    
+    if (S != nullptr){
+        string tmp = S;
+        polyline->SetStroke(tmp);
+    }
+    
+    check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        polyline->SetStrokeAlpha((float)atof(check));
 
     polyline->setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
 }
@@ -176,7 +261,14 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     if (T != nullptr) text->setTransformString(T);
 
     const char* C = E->Attribute("fill");
-    if (C != nullptr) text->SetColor(C, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
+    if (C != nullptr){
+        string tmp = C;
+        text->SetColor(tmp);
+    }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        text->SetColorAlpha((float)atof(check));
 
 }
 
@@ -221,12 +313,22 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         path->setTransformString(T);
     if (C != nullptr){
         string tmp = C;
-        path->SetColor(tmp, E->Attribute("fill-opacity") == nullptr ? 1 : E->FloatAttribute("fill-opacity"));
+        path->SetColor(tmp);
     }
+    
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        path->SetColorAlpha((float)atof(check));
+    
     if (S != nullptr){
         string tmp = S;
-        path->SetStroke(tmp, E->Attribute("stroke-opacity") == nullptr ? 1 : E->FloatAttribute("stroke-opacity"));
+        path->SetStroke(tmp);
     }
+    
+    check = E->Attribute("stroke-opacity");
+    if (check != nullptr)
+        path->SetStrokeAlpha((float)atof(check));
+    
     if (E->Attribute("stroke-width"))
         path->setStrokeWidth(E->FloatAttribute("stroke-width"));
 }

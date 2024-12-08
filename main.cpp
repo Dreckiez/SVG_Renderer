@@ -2,6 +2,7 @@
 #include <gdiplus.h>
 #include <string>
 #include <memory>
+#include <fstream>
 #include <iostream>
 
 #include "tinyxml2.h"
@@ -15,6 +16,7 @@ using namespace std;
 ULONG_PTR gdiToken;
 float scale = 1;
 bool scale_mouse = 0;
+string filepath;
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -71,7 +73,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_PAINT:{
             tinyxml2::XMLDocument doc;
-            doc.LoadFile("sample2.svg");
+            doc.LoadFile(filepath.c_str());
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             Graphics graphics(hdc);
@@ -163,6 +165,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     GdiplusStartupInput gdiInput;
     GdiplusStartup(&gdiToken, &gdiInput, nullptr);
+    
+    // string CMD(lpCmdLine);
+    filepath = lpCmdLine;
+
+    if (filepath.empty()){
+        MessageBox(nullptr, "Provide a file path!", "Error", MB_OK | MB_ICONERROR);
+        return 0;
+    }
+    
+    fstream f(filepath);
+    if (!f.is_open()){
+        f.close();
+        MessageBox(nullptr, "File doesn't exist!", "Error", MB_OK | MB_ICONERROR);
+        return 0;   
+    }
+
+    f.close();
+
 
     WNDCLASS wc = {};
     wc.lpfnWndProc = WindowProc;
@@ -171,7 +191,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterClass(&wc);
 
-    HWND hwnd = CreateWindowEx(0, wc.lpszClassName, "SVG Render", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600, nullptr, nullptr, hInstance, nullptr);
+    HWND hwnd = CreateWindowEx(0, wc.lpszClassName, "SVG Render", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600, nullptr, nullptr, hInstance, lpCmdLine);
 
     if (hwnd == nullptr) {
         return 0;
