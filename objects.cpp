@@ -479,7 +479,9 @@ Shapes::Path* Path::clone() const{
 }
 
 //group
-Group::Group(){}
+Group::Group(){
+    cout << "Group constructed\n";
+}
 
 void Group::addShapes(Object* obj){
     if (obj){
@@ -503,7 +505,7 @@ int Group::getSize(){
 
 Object* Group::operator [] (int idx) const{
     if (idx < shapes.size()){
-        return shapes[idx];
+        return shapes[idx]->clone();
     }
     return NULL;
 }
@@ -549,6 +551,7 @@ Shapes::Group* Group::clone() const{
 }
 
 Group::~Group(){
+    cout << "Destructor called\n";
     for (int i = 0; i < shapes.size(); i++){
         if (shapes[i]){
             delete shapes[i];

@@ -144,7 +144,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
             Drawer drawer(list, &graphics, scale, anchor);
             cout << "list" << list.size() << endl;
-            drawer.Draw(&graphics, scale, anchor);
+
+            drawer.Draw();
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
             EndPaint(hwnd, &ps);

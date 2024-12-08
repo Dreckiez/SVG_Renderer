@@ -12,17 +12,17 @@ private:
     Gdiplus::Graphics* g;
 public:
     Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawR(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawC(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawE(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawPG(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawPL(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawT(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawP(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
-    void DrawG(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+    void DrawR(Shapes::Rectangle* R);
+    void DrawL(Shapes::Line* L);
+    void DrawC(Shapes::Circle* C);
+    void DrawE(Shapes::Ellipse* E);
+    void DrawPG(Shapes::Polygon* PG);
+    void DrawPL(Shapes::Polyline* PL);
+    void DrawT(Shapes::Text* T);
+    void DrawP(Shapes::Path* P);
+    void DrawG(Shapes::Group* G);
     
-    void Draw(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
+    void Draw();
 };    
 
 

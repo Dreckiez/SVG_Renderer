@@ -270,6 +270,7 @@ void Reader::ReadGroup(Shapes::Group* group, XMLElement *E){
 
     for (XMLElement* Child = E->FirstChildElement(); Child != nullptr; Child = Child->NextSiblingElement()){
         string name = Child->Name();
+        cout << name << endl;
         if (name == "rect"){
             unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
             ptr->copy(obj);
@@ -318,12 +319,11 @@ void Reader::ReadGroup(Shapes::Group* group, XMLElement *E){
             ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), Child);
             group->addShapes(move(ptr.get()));
         }else if (name == "g"){
-            unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Group>();
-            ptr->copy(obj);
-            ReadGroup(dynamic_cast<Shapes::Group*>(ptr.get()), Child);
-            group->addShapes(move(ptr.get()));
+            // unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Group>();
+            // ptr->copy(obj);
+            ReadGroup(group, Child);
+            // group->addShapes(move(ptr.get()));
         }
     }
-    cout << group->getShapes().size() << " ";
     cout << group->toString();
 }
