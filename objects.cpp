@@ -159,6 +159,7 @@ void Shapes::Point::SetPoint(float a, float b){
 Shapes::Object::Object(){
     stroke_width = 0;
     stroke.SetAlpha(0);
+    Transform = "";
 }
 
 void Shapes::Object::CopyAttribute(const Object &other){
@@ -176,15 +177,14 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     // cout << S << '\n';
     // cout << C << '\n';
     
-    if (T != nullptr) setTransformString(T);
+    if (T != nullptr){
+        setTransformString(T);
+    }
     if (C != nullptr){
-        
         SetColor(C);
     }
     if (S != nullptr){
-    
         SetStroke(S);
-        
     }
 
     const char* check = E->Attribute("fill-opacity");
@@ -233,13 +233,22 @@ float Shapes::Object::getStrokeWidth(){
 }
 
 void Shapes::Object::setTransformString(const char* T){
-    Transform = T;
+    string str = T;
+    if(Transform != ""){
+        Transform = Transform + " " + T;
+    }
+    else{
+        Transform = T;
+    }
 }
 
 void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor){
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
+    translate_x*=s;
+    translate_y*=s;
+    M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
     while(getline(ss, type, '(')){
         if(type == "translate"){
             getline(ss, para, ',');
@@ -247,6 +256,7 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             getline(ss, para, ')');
             translate_y = stof(para);
             getline(ss, para, ' ');
+            M.Translate(translate_x, translate_y);
         }
         else if(type == "scale"){
             string temp;
@@ -265,20 +275,16 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
                 scale_y = stof(para);
                 getline(ss, para, ' ');
             }
+            M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
             getline(ss, para, ')');
             rotate = stof(para);
             float radian = rotate * 3.1415926 / (float)180;
             getline(ss, para, ' ');
+            M.Rotate(rotate);
         }
     }
-    translate_x*=s;
-    translate_y*=s;
-    M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
-    M.Translate(translate_x, translate_y);
-    M.Rotate(rotate);
-    M.Scale(scale_x, scale_y);
 }
 
 
@@ -474,7 +480,6 @@ Shapes::Group::~Group(){
     Shapes_List.clear();
 }
 
-<<<<<<< HEAD
 void Shapes::Point::SetPoint(Point p){
     x = p.GetX();
     y = p.GetY();
@@ -561,7 +566,7 @@ void Shapes::LinearVector::read_gradient(tinyxml2::XMLElement* defs){
             float stopOpacity = 1.0f;
             stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
             RGBA color;
-            color.HexToRGB(colorHex);
+            color.SetRGB(colorHex);
             color.SetAlpha(stopOpacity);
             LG.get_colors().push_back(color);
         }
@@ -572,19 +577,6 @@ void Shapes::LinearVector::read_gradient(tinyxml2::XMLElement* defs){
     return;
 }
 
-void Shapes::RGBA::HexToRGB(string s){
-    size_t hex = s.find('#');
-    if (hex != string::npos){
-        if (s.size() == 4){
-            red = stoi(string(2, s[1]), nullptr, 16);
-            green = stoi(string(2, s[2]), nullptr, 16);
-            blue = stoi(string(2, s[3]), nullptr, 16);
-        }else if (s.size() == 7){
-            red = stoi(s.substr(1,2), nullptr, 16);
-            green = stoi(s.substr(3,2), nullptr, 16);
-            blue = stoi(s.substr(5,2), nullptr, 16);
-        }
-    }
+string Shapes::Object::get_transform(){
+    return Transform;
 }
-=======
->>>>>>> 036faf459ef4e589e5ffb7bedf16d402b8a17144

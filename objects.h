@@ -29,11 +29,7 @@ namespace Shapes{
         int GetBlue();
         float GetAlpha();
         void SetAlpha(float a);
-<<<<<<< HEAD
-        void HexToRGB(string s);
-=======
         void SetRGB(string s);
->>>>>>> 036faf459ef4e589e5ffb7bedf16d402b8a17144
     };
 
     class Point{
@@ -103,6 +99,7 @@ namespace Shapes{
 
         void setTransformString(const char* T);
         void setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor);
+        string get_transform();
     };
 
     class Rectangle:public Object{
