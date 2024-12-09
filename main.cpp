@@ -2,6 +2,7 @@
 #include <gdiplus.h>
 #include <string>
 #include <memory>
+#include <fstream>
 #include <iostream>
 
 #include "tinyxml2.h"
@@ -15,6 +16,7 @@ using namespace std;
 ULONG_PTR gdiToken;
 float scale = 1;
 bool scale_mouse = 0;
+string filepath;
 
 
 LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) {
@@ -71,7 +73,11 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             return 0;
         case WM_PAINT:{
             tinyxml2::XMLDocument doc;
+<<<<<<< HEAD
             doc.LoadFile("sample.svg");
+=======
+            doc.LoadFile(filepath.c_str());
+>>>>>>> 036faf459ef4e589e5ffb7bedf16d402b8a17144
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
             Graphics graphics(hdc);
@@ -107,6 +113,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
                     reader.ReadRectangle(dynamic_cast<Shapes::Rectangle*>(ptr.get()), root);
                     list.push_back(std::move(ptr));
+                    cout << "Read Rect\n";
                 }
                 else if (name == "line"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Line>();
@@ -138,14 +145,27 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     reader.ReadText(dynamic_cast<Shapes::Text*>(ptr.get()), root);
                     list.push_back(std::move(ptr));
                 }
+<<<<<<< HEAD
                 // else if (name == "path"){
                 //     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
                 //     reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
                 //     list.push_back(std::move(ptr));
                 // }
+=======
+                else if (name == "path"){
+                    unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
+                    reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
+                }
+                else if (name == "g"){
+                    unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Group>();
+                    reader.ReadGroup(dynamic_cast<Shapes::Group*>(ptr.get()), root);
+                    list.push_back(std::move(ptr));
+                }
+>>>>>>> 036faf459ef4e589e5ffb7bedf16d402b8a17144
             }
-            Drawer drawer(list);
-            drawer.Draw(&graphics, scale, anchor);
+            Drawer drawer(list, &graphics, scale, anchor);
+            drawer.Draw();
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
             EndPaint(hwnd, &ps);
@@ -170,6 +190,24 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     GdiplusStartupInput gdiInput;
     GdiplusStartup(&gdiToken, &gdiInput, nullptr);
+    
+    // string CMD(lpCmdLine);
+    filepath = lpCmdLine;
+
+    if (filepath.empty()){
+        MessageBox(nullptr, "Provide a file path!", "Error", MB_OK | MB_ICONERROR);
+        return 0;
+    }
+    
+    fstream f(filepath);
+    if (!f.is_open()){
+        f.close();
+        MessageBox(nullptr, "File doesn't exist!", "Error", MB_OK | MB_ICONERROR);
+        return 0;   
+    }
+
+    f.close();
+
 
     WNDCLASS wc = {};
     wc.lpfnWndProc = WindowProc;
@@ -178,7 +216,7 @@ int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpCmdLine
 
     RegisterClass(&wc);
 
-    HWND hwnd = CreateWindowEx(0, wc.lpszClassName, "SVG Render", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600, nullptr, nullptr, hInstance, nullptr);
+    HWND hwnd = CreateWindowEx(0, wc.lpszClassName, "SVG Render", WS_OVERLAPPEDWINDOW, CW_USEDEFAULT, CW_USEDEFAULT, 800, 600, nullptr, nullptr, hInstance, lpCmdLine);
 
     if (hwnd == nullptr) {
         return 0;

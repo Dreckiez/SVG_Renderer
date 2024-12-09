@@ -28,9 +28,12 @@ namespace Shapes{
         int GetGreen();
         int GetBlue();
         float GetAlpha();
-        void SetRGB(int r, int g, int b);
         void SetAlpha(float a);
+<<<<<<< HEAD
         void HexToRGB(string s);
+=======
+        void SetRGB(string s);
+>>>>>>> 036faf459ef4e589e5ffb7bedf16d402b8a17144
     };
 
     class Point{
@@ -83,10 +86,15 @@ namespace Shapes{
     public:
         Object();
         virtual ~Object() = default;
-        void SetColor(string s, float alpha);
-        void SetStroke(string s, float alpha);
 
-        void StringToRGB(int &r, int &g, int &b, string s);
+        void SetAttribute(XMLElement* E);
+        void CopyAttribute(const Object &other);
+
+        void SetColor(string s);
+        void SetStroke(string s);
+        void SetColorAlpha(float alpha);
+        void SetStrokeAlpha(float alpha);
+
         Shapes::RGBA getColor();
         Shapes::RGBA getStroke();
 
@@ -199,30 +207,21 @@ namespace Shapes{
         void setText(string& str);
     };
 
-    class Path:public Object{
+    class Group:public Object{
     private:
-        vector<char> cmd;
-        vector<float> coor;
+        vector<Object*> Shapes_List;
     public:
-        Path();
+        Group();
+        void AddShapes(Object* obj);
 
-        vector<char> getCmd();
-        vector<float> getCoor();
-
-        void addCmd(char c);
-        void addCoor(float coordinate);
-    };
-
-    
-
-    
+        Object* GetShape(int idx);
 
 
-    class Transform{
-    private:
-        vector <Object*> content;
-    public:
+        int GetSize();
 
+        // Object* operator[](int idx) const;
+
+        ~Group();
     };
 
 };

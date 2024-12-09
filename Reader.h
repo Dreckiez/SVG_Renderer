@@ -5,11 +5,12 @@
 #include <sstream>
 
 #include "objects.h"
+#include "Path.h"
 
 
 class Reader{
 public:
-    Reader(); 
+    Reader();
     void ReadRectangle(Shapes::Rectangle* rect, XMLElement* E);
     void ReadLine(Shapes::Line* line, XMLElement* E);
     void ReadCircle(Shapes::Circle* circle, XMLElement* E);
@@ -18,6 +19,7 @@ public:
     void ReadPolyline(Shapes::Polyline* polyline, XMLElement* E);
     void ReadText(Shapes::Text* text, XMLElement* E);
     void ReadPath(Shapes::Path* path, XMLElement *E);
+    void ReadGroup(Shapes::Group* group, XMLElement* E);
 };
 
 

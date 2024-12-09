@@ -34,7 +34,7 @@ Shapes::RGBA::RGBA(){
     red = 0;
     green = 0;
     blue = 0;
-    opacity = 0;
+    opacity = 1;
 }
 
 int Shapes::RGBA::GetRed(){
@@ -53,14 +53,76 @@ float Shapes::RGBA::GetAlpha(){
     return opacity;
 }
 
-void Shapes::RGBA::SetRGB(int r, int g, int b){
-    red = r;
-    green = g;
-    blue = b;
-}
-
 void Shapes::RGBA::SetAlpha(float a){
     opacity = a;
+}
+
+void Shapes::RGBA::SetRGB(string s){
+    // cout << s << " ";
+    if (s == "none"){
+        opacity = 0;
+    }
+    else if (s.find('#') != string::npos){
+        // HEX CODE format
+        if (s.size() == 4){
+            red = stoi(string(2, s[1]), nullptr, 16);
+            green = stoi(string(2, s[2]), nullptr, 16);
+            blue = stoi(string(2, s[3]), nullptr, 16);
+        }
+        else if (s.size() == 7){
+            red = stoi(s.substr(1,2), nullptr, 16);
+            green = stoi(s.substr(3,2), nullptr, 16);
+            blue = stoi(s.substr(5,2), nullptr, 16);
+        }
+    }
+    else if (namedColors.find(s) != namedColors.end()){
+        //Color Name
+        tie(red, green, blue) = namedColors[s];
+    }
+    else if (s.find("hsl") != string::npos){
+        s.erase(0,4);
+        s.erase(s.size()-1, 1);
+        for (int i = 0; i < s.size(); i++){
+            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
+            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
+        }
+
+        int H,S,L;
+        double C, X, m, tmp_r, tmp_g, tmp_b;
+
+        stringstream ss(s);
+        ss >> H >> S >> L;
+
+        C = (1 - abs(2 * L/100.0 - 1)) * S/100.0;
+        double tmp = H/60.0;
+        tmp = tmp - (int)(tmp/2) * 2;
+        X = C * (1 - abs(tmp - 1));
+
+    }
+    else if (s.find("rgba") != string::npos){
+        // RGBA format
+        s.erase(0,5);
+        s.erase(s.size()-1, 1);
+        for (int i = 0; i < s.size(); i++){
+            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
+            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
+        }
+        stringstream ss(s);
+        ss >> red >> green >> blue >> opacity;
+    }
+    else {
+        // RGB format
+        s.erase(0,4);
+        s.erase(s.size()-1, 1);
+        for (int i = 0; i < s.size(); i++){
+            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
+            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
+        }
+        stringstream ss(s);
+        ss >> red >> green >> blue;
+    }
+
+    // cout << red << ' ' << green << ' ' << blue << ' ' << opacity << '\n';
 }
 
 Shapes::Point::Point(){
@@ -96,61 +158,62 @@ void Shapes::Point::SetPoint(float a, float b){
 
 Shapes::Object::Object(){
     stroke_width = 0;
+    stroke.SetAlpha(0);
 }
 
-void Shapes::Object::SetColor(string s, float alpha){
-    int r,g,b;
-    if (s == "none")
-        alpha = 0;
+void Shapes::Object::CopyAttribute(const Object &other){
+    color = other.color;
+    stroke = other.stroke;
+    stroke_width = other.stroke_width;
+    Transform = other.Transform;
+}
 
-    StringToRGB(r,g,b,s);
+void Shapes::Object::SetAttribute(XMLElement* E){
+    const char* C = E->Attribute("fill");
+    const char* S = E->Attribute("stroke");
+    const char* T = E->Attribute("transform");
+    
+    // cout << S << '\n';
+    // cout << C << '\n';
+    
+    if (T != nullptr) setTransformString(T);
+    if (C != nullptr){
+        
+        SetColor(C);
+    }
+    if (S != nullptr){
+    
+        SetStroke(S);
+        
+    }
 
-    color.SetRGB(r,g,b);
+    const char* check = E->Attribute("fill-opacity");
+    if (check != nullptr)
+        SetColorAlpha((float)atof(check));
+
+    check = E->Attribute("stroke-opacity");
+
+    if (check != nullptr)
+        SetStrokeAlpha((float)atof(check));
+        
+    setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
+}
+
+void Shapes::Object::SetColor(string s){
+    color.SetRGB(s);
+}
+
+void Shapes::Object::SetStroke(string s){
+    stroke.SetAlpha(1);
+    stroke.SetRGB(s);
+}
+
+void Shapes::Object::SetColorAlpha(float alpha){
     color.SetAlpha(alpha);
 }
 
-void Shapes::Object::SetStroke(string s, float alpha){
-    int r,g,b;
-    if (s == "none")
-        alpha = 0;
-
-    StringToRGB(r,g,b,s);
-
-    stroke.SetRGB(r,g,b);
+void Shapes::Object::SetStrokeAlpha(float alpha){
     stroke.SetAlpha(alpha);
-}
-
-void Shapes::Object::StringToRGB(int &r, int &g, int &b, string s){
-    // cout << s << " ";
-    size_t hex = s.find('#');
-    if (hex != string::npos){
-        // cout << "hex ";
-        if (s.size() == 4){
-            r = stoi(string(2, s[1]), nullptr, 16);
-            g = stoi(string(2, s[2]), nullptr, 16);
-            b = stoi(string(2, s[3]), nullptr, 16);
-        }else if (s.size() == 7){
-            r = stoi(s.substr(1,2), nullptr, 16);
-            g = stoi(s.substr(3,2), nullptr, 16);
-            b = stoi(s.substr(5,2), nullptr, 16);
-        }
-    }else if (namedColors.find(s) != namedColors.end()){
-        // cout << "named ";
-         tie(r, g, b) = namedColors[s];
-    }else{
-        // cout << "rgb ";
-        s.erase(0,4);
-        s.erase(s.size()-1, 1);
-        for (int i = 0; i < s.size(); i++){
-            if (s[i] == ',' && s[i+1] == ' ') s.erase(i,1);
-            else if (s[i] == ',' && s[i+1] != ' ') s[i] = ' ';
-        }
-
-        stringstream ss(s);
-        ss >> r >> g >> b;
-    }
-    // cout << r << " " << g << " " << b << endl;
-    
 }
 
 Shapes::RGBA Shapes::Object::getColor(){
@@ -359,7 +422,7 @@ Shapes::Text::Text(){
     top.SetPoint(0,0);
     font_size = 0;
     text = "";
-    cout << "Text constructor" << endl;
+    cout << "Text constructed\n";
 }
 
 Shapes::Point Shapes::Text::getTop(){
@@ -387,27 +450,31 @@ void Shapes::Text::setText(string& str) {
     text = str;
 }
 
-
-Shapes::Path::Path(){
-    cout << "Path constructed\n";
+Shapes::Group::Group(){
+    cout << "Group constructed\n";
 }
 
-void Shapes::Path::addCmd(char c){
-    cmd.push_back(c);
+void Shapes::Group::AddShapes(Shapes::Object* obj){
+    Shapes_List.push_back(obj);
 }
 
-void Shapes::Path::addCoor(float coordinate){
-    coor.push_back(coordinate);
+Shapes::Object* Shapes::Group::GetShape(int idx){
+    if (idx >= Shapes_List.size()) return nullptr;
+    return Shapes_List[idx];
 }
 
-vector<char> Shapes::Path::getCmd(){
-    return cmd;
+int Shapes::Group::GetSize(){
+    return Shapes_List.size();
 }
 
-vector<float> Shapes::Path::getCoor(){
-    return coor;
+Shapes::Group::~Group(){
+    for (int i = 0; i < Shapes_List.size(); i++){
+        delete Shapes_List[i];
+    }
+    Shapes_List.clear();
 }
 
+<<<<<<< HEAD
 void Shapes::Point::SetPoint(Point p){
     x = p.GetX();
     y = p.GetY();
@@ -519,3 +586,5 @@ void Shapes::RGBA::HexToRGB(string s){
         }
     }
 }
+=======
+>>>>>>> 036faf459ef4e589e5ffb7bedf16d402b8a17144
