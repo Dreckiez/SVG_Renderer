@@ -128,15 +128,14 @@ void Drawer::DrawT(Shapes::Object* obj){
     wstring wtext(size_needed, L'\0');
     mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
 
-
     Gdiplus::FontFamily ff(wff.c_str());
 
     Gdiplus::GraphicsPath text;
     // cout << text.GetPointCount() << '\n';
-    // text.StartFigure();
-    text.AddString(wtext.c_str(), T->getText().size(), &ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX(), T->getTop().GetY()}, nullptr);
-    // text.CloseFigure();
-    // cout << text.GetPointCount() << '\n';
+    text.StartFigure();
+    text.AddString(wtext.c_str(), T->getText().size(), &ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
+    text.CloseFigure();
+    cout << text.GetPointCount() << '\n';
     // cout << "Added String\n";
     g->DrawPath(&p, &text);
     g->FillPath(&b, &text);
