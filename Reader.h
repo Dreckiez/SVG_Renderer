@@ -5,6 +5,7 @@
 #include <sstream>
 
 #include "objects.h"
+#include "Path.h"
 
 
 class Reader{

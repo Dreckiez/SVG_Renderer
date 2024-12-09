@@ -175,20 +175,6 @@ namespace Shapes{
         void setText(string& str);
     };
 
-    class Path:public Object{
-    private:
-        vector<char> cmd;
-        vector<float> coor;
-    public:
-        Path();
-
-        vector<char> getCmd();
-        vector<float> getCoor();
-
-        void addCmd(char c);
-        void addCoor(float coordinate);
-    };
-
     class Group:public Object{
     private:
         vector<Object*> Shapes_List;
@@ -204,18 +190,6 @@ namespace Shapes{
         // Object* operator[](int idx) const;
 
         ~Group();
-    };
-
-    
-
-    
-
-
-    class Transform{
-    private:
-        vector <Object*> content;
-    public:
-
     };
 
 };

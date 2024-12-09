@@ -121,6 +121,8 @@ void Shapes::RGBA::SetRGB(string s){
         stringstream ss(s);
         ss >> red >> green >> blue;
     }
+
+    // cout << red << ' ' << green << ' ' << blue << ' ' << opacity << '\n';
 }
 
 Shapes::Point::Point(){
@@ -171,15 +173,17 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
     
+    // cout << S << '\n';
+    // cout << C << '\n';
     
     if (T != nullptr) setTransformString(T);
     if (C != nullptr){
-        string tmp = C;
-        SetColor(tmp);
+        
+        SetColor(C);
     }
     if (S != nullptr){
-        string tmp = S;
-        SetStroke(tmp);
+    
+        SetStroke(S);
         
     }
 
@@ -446,27 +450,6 @@ void Shapes::Text::setText(string& str) {
     text = str;
 }
 
-
-Shapes::Path::Path(){
-    cout << "Path constructed\n";
-}
-
-void Shapes::Path::addCmd(char c){
-    cmd.push_back(c);
-}
-
-void Shapes::Path::addCoor(float coordinate){
-    coor.push_back(coordinate);
-}
-
-vector<char> Shapes::Path::getCmd(){
-    return cmd;
-}
-
-vector<float> Shapes::Path::getCoor(){
-    return coor;
-}
-
 Shapes::Group::Group(){
     cout << "Group constructed\n";
 }
@@ -483,11 +466,6 @@ Shapes::Object* Shapes::Group::GetShape(int idx){
 int Shapes::Group::GetSize(){
     return Shapes_List.size();
 }
-
-/* Shapes::Object* Shapes::Group::operator[](int idx) const{
-    if (idx >= Shapes_List.size()) return nullptr;
-    return Shapes_List[idx];
-} */
 
 Shapes::Group::~Group(){
     for (int i = 0; i < Shapes_List.size(); i++){

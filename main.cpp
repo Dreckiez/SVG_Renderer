@@ -102,6 +102,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Rectangle>();
                     reader.ReadRectangle(dynamic_cast<Shapes::Rectangle*>(ptr.get()), root);
                     list.push_back(std::move(ptr));
+                    cout << "Read Rect\n";
                 }
                 else if (name == "line"){
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Line>();

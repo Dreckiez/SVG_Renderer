@@ -2,6 +2,7 @@
 #define DRAWER_H
 
 #include "objects.h"
+#include "Path.h"
 
 
 class Drawer{

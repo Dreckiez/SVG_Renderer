@@ -67,8 +67,8 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
         getline(pointStream, yStr);
 
         Shapes::Point p;
-        p.SetX(stof(xStr));
-        p.SetY(stof(yStr));
+        p.SetX(atof(xStr.c_str()));
+        p.SetY(atof(yStr.c_str()));
         points.push_back(p);
     }
     polygon->setPoints(points);
@@ -88,8 +88,8 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
         getline(pointStream, yStr);
 
         Shapes::Point p;
-        p.SetX(stof(xStr));
-        p.SetY(stof(yStr));
+        p.SetX(atof(xStr.c_str()));
+        p.SetY(atof(yStr.c_str()));
         points.push_back(p);
     }
     polyline->setPoints(points);
@@ -118,35 +118,81 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     string d = E->Attribute("d");
-    
+
+    //replace all delimeter into spaces
+    for (int i = 0; i < d.size(); i++){
+        if ((d[i] == ',' || d[i] == '.' || d[i] == '\n')){
+            d[i]= ' ';
+        }
+    }
+
+    //insert spaces between command and numbers
+    for (int i = 0; i < d.size() - 1; i++){
+        if (isalpha(d[i])  && (isdigit(d[i + 1]) || d[i + 1] == '-')){
+            d.insert(i + 1, " ");
+        }else if ((isdigit(d[i]) || d[i] == '-') && isalpha(d[i + 1])){
+            d.insert(i + 1, " ");
+        }else if (isalpha(d[i] && isalpha(d[i + 1]))){
+            d.insert(i + 1, " ");
+        }
+    }
+
+    //remove excessive spaces
+    for (int i = 0; i < d.size() - 1; i++){
+        if (d[i] == ' ' && d[i + 1] == ' '){
+            d.erase(i, 1);
+            i--;
+        }
+    }
+
     cout << d << endl;
 
-    char c;
-    string num = "";
-    int n;
+    stringstream ss(d);
     
-    for (int i = 0; i < d.size(); i++){
-        if (isalpha(d[i])){
-            path->addCmd(d[i]);
-            if (d[i] == 'Z' || d[i] == 'z') break;
+    char c;
+    float x = 0, y = 0;;
+    int n;
+
+    while (ss >> c){
+        if (ss.fail()){
+
+            break;
         }
-        else if (isdigit(d[i])){
-            num += d[i];
-            if (i + 1 < d.size() && !isdigit(d[i+1])){
-                path->addCoor(atof(num.c_str()));
-                num.clear();
+        
+        Shapes::Command cmd;
+        cmd.setCmd(c);
+        if (c == 'Z' || c == 'z'){
+            path->add(cmd);
+            continue;
+        }
+        if (c == 'H' || c == 'h'){
+            ss >> x;
+            PointF p(x, 0);
+            cmd.addPoint(p);
+        }else if (c == 'V' || c == 'v'){
+            ss >> y;
+            PointF p(0, y);
+            cmd.addPoint(p);
+        }else{
+            while (ss){
+                if (ss >> x >> y){
+                    PointF p(x, y);
+                    cmd.addPoint(p);
+                }else{
+                    ss.clear(); // Clear the fail state
+                    //ss.ignore(numeric_limits<streamsize>::max(), ' ');
+                    break;
+                }
             }
         }
+        path->add(cmd);
+        // cout << ss.str() << endl;
     }
 
     for (int i = 0; i < path->getCmd().size(); i++){
-        cout << path->getCmd()[i] << " ";
+        cout << path->getCmdAt(i).toString() << endl;
     }
-    cout << endl;
-    for (int i = 0; i < path->getCoor().size(); i++){
-        cout << path->getCoor()[i] << " ";
-    }
-    cout << endl;
+    
 
     path->SetAttribute(E);
 }
