@@ -182,8 +182,6 @@ namespace Shapes{
         string getTextAnchor();
         void setTextAnchor(string ta);
 
-        void CheckAtt();
-        
         string getText();
         void setText(string& str);
     };

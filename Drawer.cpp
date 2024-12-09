@@ -111,7 +111,7 @@ void Drawer::DrawT(Shapes::Object* obj){
     Pen p(Gdiplus::Color(T->getStroke().GetAlpha()*255, T->getStroke().GetRed(), T->getStroke().GetGreen(), T->getStroke().GetBlue()), T->getStrokeWidth() * s);
     SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
 
-    
+    // Create a wide string for Font Family 
     size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
     if (size_needed == static_cast<size_t>(-1)) {
         std::wcerr << L"Error converting string to wide string." << endl;
@@ -120,6 +120,7 @@ void Drawer::DrawT(Shapes::Object* obj){
     wstring wff(size_needed, L'\0');
     mbstowcs(&wff[0], T->getFontFamily().c_str(), size_needed);
 
+    //Create a wide string for Text
     size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
     if (size_needed == static_cast<size_t>(-1)) {
         std::wcerr << L"Error converting string to wide string." << endl;
@@ -128,23 +129,39 @@ void Drawer::DrawT(Shapes::Object* obj){
     wstring wtext(size_needed, L'\0');
     mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
 
-    Gdiplus::FontFamily ff(wff.c_str());
+    // Font Family
+    Gdiplus::FontFamily* ff = new Gdiplus::FontFamily(wff.c_str());
+
+    // Check if it can load the Font Family 
+    if (!ff->IsAvailable()){
+        delete ff;
+        ff = new Gdiplus::FontFamily(L"Times New Roman"); // If no then it will load the default
+    }
+
+    // Recalculating the Top-Left Point because of the Text-anchor attribute
+    if (!T->getTextAnchor().empty() && T->getTextAnchor() != "start"){
+        Shapes::Point TA(T->getTop());
+        Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
+        Gdiplus::RectF Bounding_Box;
+        g->MeasureString(wtext.c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
+        
+        if (T->getTextAnchor() == "middle")
+            TA.SetX(TA.GetX() - Bounding_Box.Width/2);
+        else if (T->getTextAnchor() == "end")
+            TA.SetX(TA.GetX() - Bounding_Box.Width);
+    }
+
 
     Gdiplus::GraphicsPath text;
-    // cout << text.GetPointCount() << '\n';
     text.StartFigure();
-    text.AddString(wtext.c_str(), T->getText().size(), &ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
+    text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
     text.CloseFigure();
-    cout << text.GetPointCount() << '\n';
-    // cout << "Added String\n";
+
     g->DrawPath(&p, &text);
     g->FillPath(&b, &text);
     g->ResetTransform();
-    // cout << "Drawn or Not\n";
-}
 
-void debug(PointF p){
-    cout << "(" << p.X << " " << p.Y << ") ";
+    delete ff;
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
@@ -289,10 +306,6 @@ void Drawer::DrawP(Shapes::Object* obj){
                 Control1 = coor[j++] + pre;
                 Control2 = coor[j++] + pre;
                 cur = coor[j] + pre;
-                cout << "Pre:";debug(pre);
-                cout << "\nC1 : "; debug(Control1);
-                cout << "\nC2: "; debug(Control2);
-                cout << "\ncur : "; debug(cur);
                 path.AddBezier(pre, Control1, Control2, cur);
                 pre = cur;
             }

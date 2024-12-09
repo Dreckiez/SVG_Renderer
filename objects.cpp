@@ -432,7 +432,7 @@ Shapes::Text::Text(){
     top.SetPoint(0,0);
     font_size = 30;
     text = "";
-    font_family = "";
+    font_family = "Times New Roman";
     font_style = "";
     text_achor = "";
     cout << "Text constructed\n";
@@ -444,14 +444,6 @@ Shapes::Point Shapes::Text::getTop(){
 
 void Shapes::Text::setTop(Point& p) {
     top = p;
-}
-
-void Shapes::Text::CheckAtt(){
-    cout << "Font size: " << font_size << '\n';
-    cout << "Font family: " << font_family << '\n';
-    cout << "Font style: " << font_style << '\n';
-    cout << "Text anchor: " << text_achor << '\n';
-    cout << "Text: " << text << '\n';
 }
 
 float Shapes::Text::getFontSize(){

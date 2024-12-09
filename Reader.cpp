@@ -98,15 +98,19 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
 }
 
 void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
+    float fontsize;
+    if (E->Attribute("font-size")){
+        fontsize = E->FloatAttribute("font-size");
+        text->setFontSize(fontsize);
+    }
+    
     Shapes::Point top;
 
     top.SetX(E->FloatAttribute("x"));
-    top.SetY(E->FloatAttribute("y"));
+    top.SetY(E->FloatAttribute("y") - 1.33 * text->getFontSize());
+
     text->setTop(top);
 
-    float fontsize = E->FloatAttribute("font-size");
-    if (fontsize != 30);
-        text->setFontSize(fontsize);
 
     const char* FF = E->Attribute("font-family");
     const char* FS = E->Attribute("font-style");
