@@ -71,6 +71,7 @@ namespace Shapes{
 
         void setTransformString(const char* T);
         void setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor);
+        string get_transform();
     };
 
     class Rectangle:public Object{
@@ -184,10 +185,7 @@ namespace Shapes{
 
         Object* GetShape(int idx);
 
-
         int GetSize();
-
-        // Object* operator[](int idx) const;
 
         ~Group();
     };

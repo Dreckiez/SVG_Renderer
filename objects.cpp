@@ -159,6 +159,7 @@ void Shapes::Point::SetPoint(float a, float b){
 Shapes::Object::Object(){
     stroke_width = 0;
     stroke.SetAlpha(0);
+    Transform = "";
 }
 
 void Shapes::Object::CopyAttribute(const Object &other){
@@ -232,14 +233,26 @@ float Shapes::Object::getStrokeWidth(){
     return stroke_width;
 }
 
+string Shapes::Object::get_transform(){
+    return Transform;
+}
+
 void Shapes::Object::setTransformString(const char* T){
-    Transform = T;
+    if(Transform != ""){
+        Transform = Transform + " " + T;
+    }
+    else{
+        Transform = T;
+    }
 }
 
 void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor){
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
+    translate_x*=s;
+    translate_y*=s;
+    M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
     while(getline(ss, type, '(')){
         if(type == "translate"){
             getline(ss, para, ',');
@@ -247,6 +260,7 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             getline(ss, para, ')');
             translate_y = stof(para);
             getline(ss, para, ' ');
+            M.Translate(translate_x, translate_y);
         }
         else if(type == "scale"){
             string temp;
@@ -265,20 +279,16 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
                 scale_y = stof(para);
                 getline(ss, para, ' ');
             }
+            M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
             getline(ss, para, ')');
             rotate = stof(para);
             float radian = rotate * 3.1415926 / (float)180;
             getline(ss, para, ' ');
+            M.Rotate(rotate);
         }
     }
-    translate_x*=s;
-    translate_y*=s;
-    M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
-    M.Translate(translate_x, translate_y);
-    M.Rotate(rotate);
-    M.Scale(scale_x, scale_y);
 }
 
 
