@@ -250,8 +250,6 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
-    translate_x*=s;
-    translate_y*=s;
     M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
     while(getline(ss, type, '(')){
         if(type == "translate"){
@@ -260,6 +258,8 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             getline(ss, para, ')');
             translate_y = stof(para);
             getline(ss, para, ' ');
+            translate_x*=s;
+            translate_y*=s;
             M.Translate(translate_x, translate_y);
         }
         else if(type == "scale"){
