@@ -174,9 +174,6 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
     
-    // cout << S << '\n';
-    // cout << C << '\n';
-    
     if (T != nullptr){
         setTransformString(T);
     }
@@ -233,7 +230,6 @@ float Shapes::Object::getStrokeWidth(){
 }
 
 void Shapes::Object::setTransformString(const char* T){
-    string str = T;
     if(Transform != ""){
         Transform = Transform + " " + T;
     }
