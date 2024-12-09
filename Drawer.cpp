@@ -1,5 +1,4 @@
 #include "Drawer.h"
-#include <gdiplus.h>
 
 Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list){
     int n = list.size();
@@ -15,6 +14,7 @@ void Drawer::DrawR(Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
         g->SetTransform(&Ma);
         Pen p(Gdiplus::Color(R->getStroke().GetAlpha()*255, R->getStroke().GetRed(), R->getStroke().GetGreen(), R->getStroke().GetBlue()), R->getStrokeWidth() * s);
         SolidBrush b(Gdiplus::Color(R->getColor().GetAlpha()*255, R->getColor().GetRed(), R->getColor().GetGreen(), R->getColor().GetBlue()));
+        
         g->FillRectangle(&b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
         g->DrawRectangle(&p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
         g->ResetTransform();
