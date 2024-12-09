@@ -108,7 +108,10 @@ void Drawer::DrawT(Shapes::Object* obj){
     T->setTransform(Ma, s, anchor);
     g->SetTransform(&Ma);
 
+    Pen p(Gdiplus::Color(T->getStroke().GetAlpha()*255, T->getStroke().GetRed(), T->getStroke().GetGreen(), T->getStroke().GetBlue()), T->getStrokeWidth() * s);
+    SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
 
+    
     size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
     if (size_needed == static_cast<size_t>(-1)) {
         std::wcerr << L"Error converting string to wide string." << endl;
@@ -116,22 +119,6 @@ void Drawer::DrawT(Shapes::Object* obj){
     }
     wstring wff(size_needed, L'\0');
     mbstowcs(&wff[0], T->getFontFamily().c_str(), size_needed);
-    Gdiplus::FontFamily ff(wff.c_str());
-    
-    /* SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
-    Font TNR(L"Times New Roman", int(T->getFontSize() * s));
-
-    size_t size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wstr(size_needed, L'\0');
-    mbstowcs(&wstr[0], T->getText().c_str(), size_needed);
-    Shapes::Point p = T->getTop();
-    p.SetY(p.GetY() - 1.33 * T->getFontSize());
-    g->DrawString(wstr.c_str(), -1, &TNR, {p.GetX() * s, p.GetY() * s}, &b);
-    g->ResetTransform(); */
 
     size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
     if (size_needed == static_cast<size_t>(-1)) {
@@ -141,9 +128,20 @@ void Drawer::DrawT(Shapes::Object* obj){
     wstring wtext(size_needed, L'\0');
     mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
 
+
+    Gdiplus::FontFamily ff(wff.c_str());
+
     Gdiplus::GraphicsPath text;
-    text.StartFigure();
-    text.AddString(wtext.c_str(), -1, &ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX(), T->getTop().GetY()}, nullptr);
+    // cout << text.GetPointCount() << '\n';
+    // text.StartFigure();
+    text.AddString(wtext.c_str(), T->getText().size(), &ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX(), T->getTop().GetY()}, nullptr);
+    // text.CloseFigure();
+    // cout << text.GetPointCount() << '\n';
+    // cout << "Added String\n";
+    g->DrawPath(&p, &text);
+    g->FillPath(&b, &text);
+    g->ResetTransform();
+    // cout << "Drawn or Not\n";
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
@@ -155,8 +153,8 @@ void Drawer::DrawP(Shapes::Object* obj){
     P->setTransform(Ma, s, anchor);
     g->SetTransform(&Ma);
 
-    Pen p(Color(P->getStroke().GetAlpha()*255, P->getStroke().GetRed(), P->getStroke().GetGreen(), P->getStroke().GetBlue()), P->getStrokeWidth() * s);
-    SolidBrush b(Color(P->getColor().GetAlpha()*255, P->getColor().GetRed(), P->getColor().GetGreen(), P->getColor().GetBlue()));
+    Pen p(Gdiplus::Color(P->getStroke().GetAlpha()*255, P->getStroke().GetRed(), P->getStroke().GetGreen(), P->getStroke().GetBlue()), P->getStrokeWidth() * s);
+    SolidBrush b(Gdiplus::Color(P->getColor().GetAlpha()*255, P->getColor().GetRed(), P->getColor().GetGreen(), P->getColor().GetBlue()));
 
     int size = P->getCmd().size();
 

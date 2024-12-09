@@ -256,9 +256,9 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     while(getline(ss, type, '(')){
         if(type == "translate"){
             getline(ss, para, ',');
-            translate_x = stof(para);
+            translate_x = atof(para.c_str());
             getline(ss, para, ')');
-            translate_y = stof(para);
+            translate_y = atof(para.c_str());
             getline(ss, para, ' ');
             M.Translate(translate_x, translate_y);
         }
@@ -268,22 +268,22 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             stringstream scale_stream(temp);
             if (temp.find(',') != std::string::npos){
                 getline(scale_stream, para, ',');
-                scale_x = stof(para);
+                scale_x = atof(para.c_str());
                 getline(scale_stream, para, ')');
-                scale_y = stof(para);
+                scale_y = atof(para.c_str());
                 getline(ss, para, ' ');
             }
             else{
                 getline(scale_stream, para, ')');
-                scale_x = stof(para);
-                scale_y = stof(para);
+                scale_x = atof(para.c_str());
+                scale_y = atof(para.c_str());
                 getline(ss, para, ' ');
             }
             M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
             getline(ss, para, ')');
-            rotate = stof(para);
+            rotate = atof(para.c_str());
             float radian = rotate * 3.1415926 / (float)180;
             getline(ss, para, ' ');
             M.Rotate(rotate);
@@ -430,7 +430,7 @@ void Shapes::Polyline::setPoints(vector<Point>& pts) {
 // text
 Shapes::Text::Text(){
     top.SetPoint(0,0);
-    font_size = 0;
+    font_size = 30;
     text = "";
     font_family = "";
     font_style = "";
@@ -444,6 +444,14 @@ Shapes::Point Shapes::Text::getTop(){
 
 void Shapes::Text::setTop(Point& p) {
     top = p;
+}
+
+void Shapes::Text::CheckAtt(){
+    cout << "Font size: " << font_size << '\n';
+    cout << "Font family: " << font_family << '\n';
+    cout << "Font style: " << font_style << '\n';
+    cout << "Text anchor: " << text_achor << '\n';
+    cout << "Text: " << text << '\n';
 }
 
 float Shapes::Text::getFontSize(){
@@ -473,8 +481,8 @@ void Shapes::Text::setFontFamily(string ff){
 }
 
 int Shapes::Text::getFontStyle(){
-    if (font_style == "italic" || font_style == "oblique") return FontStyleItalic;
-    return FontStyleRegular;
+    if (font_style == "italic" || font_style == "oblique") return Gdiplus::FontStyleItalic;
+    return Gdiplus::FontStyleRegular;
 }
 
 void Shapes::Text::setFontStyle(string fs){

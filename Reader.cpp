@@ -104,8 +104,9 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     top.SetY(E->FloatAttribute("y"));
     text->setTop(top);
 
-    float fontSize = E->FloatAttribute("font-size");
-    text->setFontSize(fontSize);
+    float fontsize = E->FloatAttribute("font-size");
+    if (fontsize != 30);
+        text->setFontSize(fontsize);
 
     const char* FF = E->Attribute("font-family");
     const char* FS = E->Attribute("font-style");
@@ -133,6 +134,8 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     }
 
     text->SetAttribute(E);
+
+    // text->CheckAtt();
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
@@ -164,7 +167,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         }
     }
 
-    cout << d << endl;
+    // cout << d << endl;
 
     stringstream ss(d);
     
@@ -208,9 +211,9 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         // cout << ss.str() << endl;
     }
 
-    for (int i = 0; i < path->getCmd().size(); i++){
+    /* for (int i = 0; i < path->getCmd().size(); i++){
         cout << path->getCmdAt(i).toString() << endl;
-    }
+    } */
     
 
     path->SetAttribute(E);
