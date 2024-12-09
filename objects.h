@@ -162,6 +162,9 @@ namespace Shapes{
         Point top;
         float font_size;
         string text;
+        string text_achor;
+        string font_family;
+        string font_style;
     public:
         Text();
         
@@ -170,6 +173,13 @@ namespace Shapes{
     	
         float getFontSize();
         void setFontSize(float size);
+        
+        string getFontFamily();
+        void setFontFamily(string ff);
+        int getFontStyle();
+        void setFontStyle(string fs);
+        string getTextAnchor();
+        void setTextAnchor(string ta);
         
         string getText();
         void setText(string& str);

@@ -422,6 +422,9 @@ Shapes::Text::Text(){
     top.SetPoint(0,0);
     font_size = 0;
     text = "";
+    font_family = "";
+    font_style = "";
+    text_achor = "";
     cout << "Text constructed\n";
 }
 
@@ -439,6 +442,41 @@ float Shapes::Text::getFontSize(){
 
 void Shapes::Text::setFontSize(float size) {
     font_size = size;
+}
+
+string Shapes::Text::getFontFamily(){
+    if (!font_family.empty()){
+        if (font_family.find(',') == string::npos)
+            return font_family;
+        else{
+            string tmp;
+            stringstream ss(font_family);
+            getline(ss, tmp, ',');
+            return tmp;
+        }
+    }
+    return "times new roman";
+}
+
+void Shapes::Text::setFontFamily(string ff){
+    font_family = ff;
+}
+
+int Shapes::Text::getFontStyle(){
+    if (font_style == "italic" || font_style == "oblique") return FontStyleItalic;
+    return FontStyleRegular;
+}
+
+void Shapes::Text::setFontStyle(string fs){
+    font_style = fs;
+}
+
+string Shapes::Text::getTextAnchor(){
+    return text_achor;
+}
+
+void Shapes::Text::setTextAnchor(string ta){
+    text_achor = ta;
 }
 
 

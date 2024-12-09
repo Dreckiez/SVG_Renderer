@@ -107,8 +107,18 @@ void Drawer::DrawT(Shapes::Object* obj){
     Gdiplus::Matrix Ma;
     T->setTransform(Ma, s, anchor);
     g->SetTransform(&Ma);
+
+
+    size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
+    if (size_needed == static_cast<size_t>(-1)) {
+        std::wcerr << L"Error converting string to wide string." << endl;
+        return;
+    }
+    wstring wff(size_needed, L'\0');
+    mbstowcs(&wff[0], T->getFontFamily().c_str(), size_needed);
+    Gdiplus::FontFamily ff(wff.c_str());
     
-    SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
+    /* SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
     Font TNR(L"Times New Roman", int(T->getFontSize() * s));
 
     size_t size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
@@ -121,13 +131,25 @@ void Drawer::DrawT(Shapes::Object* obj){
     Shapes::Point p = T->getTop();
     p.SetY(p.GetY() - 1.33 * T->getFontSize());
     g->DrawString(wstr.c_str(), -1, &TNR, {p.GetX() * s, p.GetY() * s}, &b);
-    g->ResetTransform();
+    g->ResetTransform(); */
+
+    size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
+    if (size_needed == static_cast<size_t>(-1)) {
+        std::wcerr << L"Error converting string to wide string." << endl;
+        return;
+    }
+    wstring wtext(size_needed, L'\0');
+    mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
+
+    Gdiplus::GraphicsPath text;
+    text.StartFigure();
+    text.AddString(wtext.c_str(), -1, &ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX(), T->getTop().GetY()}, nullptr);
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
-    GraphicsPath path;
+    Gdiplus::GraphicsPath path;
 
     Gdiplus::Matrix Ma;
     P->setTransform(Ma, s, anchor);

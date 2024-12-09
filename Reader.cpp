@@ -107,9 +107,28 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     float fontSize = E->FloatAttribute("font-size");
     text->setFontSize(fontSize);
 
+    const char* FF = E->Attribute("font-family");
+    const char* FS = E->Attribute("font-style");
+    const char* TA = E->Attribute("text-anchor");
+
+    if (FF){
+        string tmp = FF;
+        text->setFontFamily(tmp);
+    }
+
+    if (FS){
+        string tmp = FS;
+        text->setFontStyle(tmp);
+    }
+
+    if (TA){
+        string tmp = TA;
+        text->setTextAnchor(tmp);
+    }
+
     const char* t = E->GetText();
     if (t) {
-    	std::string textStr(t);
+    	string textStr(t);
         text->setText(textStr);
     }
 
