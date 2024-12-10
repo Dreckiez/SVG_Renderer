@@ -147,7 +147,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     //replace all delimeter into spaces
     for (int i = 0; i < d.size(); i++){
-        if ((d[i] == ',' || d[i] == '.' || d[i] == '\n')){
+        if ((d[i] == ',' || d[i] == '\n')){
             d[i]= ' ';
         }
     }
@@ -215,9 +215,9 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         // cout << ss.str() << endl;
     }
 
-    /* for (int i = 0; i < path->getCmd().size(); i++){
-        cout << path->getCmdAt(i).toString() << endl;
-    } */
+    // for (int i = 0; i < path->getCmd().size(); i++){
+    //     cout << path->getCmdAt(i).toString() << endl;
+    // }
     
 
     path->SetAttribute(E);

@@ -107,79 +107,40 @@ void Drawer::DrawT(Shapes::Object* obj){
     Gdiplus::Matrix Ma;
     T->setTransform(Ma, s, anchor);
     g->SetTransform(&Ma);
-
-    Pen p(Gdiplus::Color(T->getStroke().GetAlpha()*255, T->getStroke().GetRed(), T->getStroke().GetGreen(), T->getStroke().GetBlue()), T->getStrokeWidth() * s);
+    
     SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
+    Font TNR(L"Times New Roman", int(T->getFontSize() * s));
 
-    // Create a wide string for Font Family 
-    size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
+    size_t size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
     if (size_needed == static_cast<size_t>(-1)) {
         std::wcerr << L"Error converting string to wide string." << endl;
         return;
     }
-    wstring wff(size_needed, L'\0');
-    mbstowcs(&wff[0], T->getFontFamily().c_str(), size_needed);
-
-    //Create a wide string for Text
-    size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wtext(size_needed, L'\0');
-    mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
-
-    // Font Family
-    Gdiplus::FontFamily* ff = new Gdiplus::FontFamily(wff.c_str());
-
-    // Check if it can load the Font Family 
-    if (!ff->IsAvailable()){
-        delete ff;
-        ff = new Gdiplus::FontFamily(L"Times New Roman"); // If no then it will load the default
-    }
-
-    // Recalculating the Top-Left Point because of the Text-anchor attribute
-    if (!T->getTextAnchor().empty() && T->getTextAnchor() != "start"){
-        Shapes::Point TA(T->getTop());
-        Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
-        Gdiplus::RectF Bounding_Box;
-        g->MeasureString(wtext.c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
-        
-        if (T->getTextAnchor() == "middle")
-            TA.SetX(TA.GetX() - Bounding_Box.Width/2);
-        else if (T->getTextAnchor() == "end")
-            TA.SetX(TA.GetX() - Bounding_Box.Width);
-    }
-
-
-    Gdiplus::GraphicsPath text;
-    text.StartFigure();
-    text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
-    text.CloseFigure();
-
-    g->DrawPath(&p, &text);
-    g->FillPath(&b, &text);
+    wstring wstr(size_needed, L'\0');
+    mbstowcs(&wstr[0], T->getText().c_str(), size_needed);
+    Shapes::Point p = T->getTop();
+    p.SetY(p.GetY() - 1.33 * T->getFontSize());
+    g->DrawString(wstr.c_str(), -1, &TNR, {p.GetX() * s, p.GetY() * s}, &b);
     g->ResetTransform();
 }
 
-    delete ff;
+string debug(PointF p){
+    string s = "";
+    s += "(" + to_string(p.X) + " " + to_string(p.Y) + ") ";
+    return s;
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
-<<<<<<< HEAD
-    Gdiplus::GraphicsPath path;
-=======
     GraphicsPath path(FillModeWinding);
->>>>>>> Drawer
 
     Gdiplus::Matrix Ma;
     P->setTransform(Ma, s, anchor);
     g->SetTransform(&Ma);
 
-    Pen p(Gdiplus::Color(P->getStroke().GetAlpha()*255, P->getStroke().GetRed(), P->getStroke().GetGreen(), P->getStroke().GetBlue()), P->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(P->getColor().GetAlpha()*255, P->getColor().GetRed(), P->getColor().GetGreen(), P->getColor().GetBlue()));
+    Pen p(Color(P->getStroke().GetAlpha()*255, P->getStroke().GetRed(), P->getStroke().GetGreen(), P->getStroke().GetBlue()), P->getStrokeWidth() * s);
+    SolidBrush b(Color(P->getColor().GetAlpha()*255, P->getColor().GetRed(), P->getColor().GetGreen(), P->getColor().GetBlue()));
 
     int size = P->getCmd().size();
 
@@ -190,10 +151,6 @@ void Drawer::DrawP(Shapes::Object* obj){
     PointF cur(0,0);     //current position of pen
     PointF pre(0,0);     // 1 point before cur. cur will be updated first then AddLine or watever before updating pre
     PointF preCurve(0,0);    //previous control point, used and updated when handle command curve, quaratic,...
-
- 
-    
-    char end = cmd.back().getCmd();
 
     for (int i = 0; i < size; i++){
         char c = cmd[i].getCmd();
@@ -212,23 +169,25 @@ void Drawer::DrawP(Shapes::Object* obj){
             if (c == 'M'){
                 pre = cur = coor.back();
                 if (pSize == 1){
-                    //path.AddLine(coor[0], coor[0]);
                 }else{
                     for (int j = 0; j < coor.size() - 1; j++){
                         path.AddLine(coor[j], coor[j + 1]);
                     }
                 }
+                cout << "Move to (absolute) : " << debug(pre) << endl;
             }
             else {
-                pre = coor.front() + pre;
                 if (pSize == 1){
-                    //path.AddLine(coor[0] + pre, coor[0] + pre);
+                    pre = coor.front() + pre;
                 }else{
+                    pre = coor.front() + pre;
                     for (int j = 0; j < coor.size() - 1; j++){
-                        path.AddLine(coor[j] + pre, coor[j + 1] + pre);
+                        path.AddLine(pre, coor[j + 1] + pre);
+                        pre = pre + coor[j + 1];
                     }
                 }
-                pre = cur = coor.back() + pre;
+                cur = pre;
+                cout << "move to (relative) : " << debug(pre) << endl;
             }
         }
         else if (c == 'L' || c == 'l'){
@@ -298,8 +257,6 @@ void Drawer::DrawP(Shapes::Object* obj){
                 path.AddBezier(pre, Control1, Control2, cur);
                 pre = cur;
             }
-
-            cur = pre;
             preCurve = Control2;
 
             cout << "Cubic Bezier (absolute)\n";
@@ -320,8 +277,14 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Cubic Bezier (relative)\n";
         }
         else if (c == 'S'){
-            PointF Control1 = pre + pre - preCurve;
-            PointF Control2 = coor[0];
+            PointF Control1 (0,0);
+            PointF Control2 (0,0);
+            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                Control1 = pre + pre - preCurve;
+            }else{
+                Control1 = pre;
+            }
+            Control2 = coor[0];
             cur = coor[1];
             
             path.AddBezier(pre, Control1, Control2, cur);
@@ -420,16 +383,13 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
         else if (c == 'Z' || c == 'z'){
             path.CloseFigure();
-            g->DrawPath(&p, &path);
-            g->FillPath(&b, &path);
-            g->ResetTransform();
-            path.Reset();
+            path.SetFillMode(FillModeWinding);
             cout << "Close\n";
         }
     }
+    char end = cmd.back().getCmd();
     g->DrawPath(&p, &path);
     g->FillPath(&b, &path);
-    g->ResetTransform();
 }
 
 void Drawer::DrawG(Shapes::Object* obj){
