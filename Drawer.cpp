@@ -96,8 +96,9 @@ void Drawer::DrawPL(Shapes::Object* obj){
     
     Pen p(Gdiplus::Color(PL->getStroke().GetAlpha()*255, PL->getStroke().GetRed(), PL->getStroke().GetGreen(), PL->getStroke().GetBlue()), PL->getStrokeWidth() * s);
     SolidBrush b(Gdiplus::Color(PL->getColor().GetAlpha()*255, PL->getColor().GetRed(), PL->getColor().GetGreen(), PL->getColor().GetBlue()));
-    g->FillPolygon(&b, pF.data(), static_cast<int> (pF.size()));
-    if (PL->getStrokeWidth() != 0) g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
+    g->FillPolygon(&b, pF.data(), pF.size());
+    g->DrawLines(&p, pF.data(), pF.size());
+    // if (PL->getStrokeWidth() != 0) ;
     g->ResetTransform();
 }
 
@@ -295,7 +296,13 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Smooth Cubic Bezier (absolute)\n";
         }
         else if (c == 's'){
-            PointF Control1 = pre + pre - preCurve;
+            PointF Control1 (0,0);
+            PointF Control2 (0,0);
+            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                Control1 = pre + pre - preCurve;
+            }else{
+                Control1 = pre;
+            }
             PointF Control2 = pre + coor[0];
             PointF cur = pre + coor[1];
             

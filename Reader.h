@@ -7,6 +7,8 @@
 #include "objects.h"
 #include "Path.h"
 
+void addSpaces(string &s);
+void removeSpareSpaces(string &s);
 
 class Reader{
 public:
