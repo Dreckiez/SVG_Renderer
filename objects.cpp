@@ -58,7 +58,6 @@ void Shapes::RGBA::SetAlpha(float a){
 }
 
 void Shapes::RGBA::SetRGB(string s){
-    // cout << s << " ";
     if (s == "none"){
         opacity = 0;
     }
@@ -121,8 +120,6 @@ void Shapes::RGBA::SetRGB(string s){
         stringstream ss(s);
         ss >> red >> green >> blue;
     }
-
-    // cout << red << ' ' << green << ' ' << blue << ' ' << opacity << '\n';
 }
 
 Shapes::Point::Point(){
@@ -173,9 +170,6 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
-    
-    // cout << S << '\n';
-    // cout << C << '\n';
     
     if (T != nullptr) setTransformString(T);
     if (C != nullptr){
@@ -254,11 +248,6 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     while(getline(ss, type, '(')){
         if(type == "translate"){
             getline(ss, para, ')');
-            // getline(ss, para, ',');
-            // translate_x = stof(para);
-            // getline(ss, para, ')');
-            // translate_y = stof(para);
-            // getline(ss, para, ' ');
             int size = para.length();
             string number_string;
             for(int i = 0; i < size; i++){
@@ -276,7 +265,6 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
                     translate_y = stof(number_string);
                 }
             }
-            cout << endl << translate_x << " " << translate_y << endl;
             getline(ss, para, ' ');
             translate_x*=s;
             translate_y*=s;
