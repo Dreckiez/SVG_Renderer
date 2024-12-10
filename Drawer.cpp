@@ -124,14 +124,16 @@ void Drawer::DrawT(Shapes::Object* obj){
     g->ResetTransform();
 }
 
-void debug(PointF p){
-    cout << "(" << p.X << " " << p.Y << ") ";
+string debug(PointF p){
+    string s = "";
+    s += "(" + to_string(p.X) + " " + to_string(p.Y) + ") ";
+    return s;
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
-    GraphicsPath path;
+    GraphicsPath path(FillModeWinding);
 
     Gdiplus::Matrix Ma;
     P->setTransform(Ma, s, anchor);
@@ -150,10 +152,6 @@ void Drawer::DrawP(Shapes::Object* obj){
     PointF pre(0,0);     // 1 point before cur. cur will be updated first then AddLine or watever before updating pre
     PointF preCurve(0,0);    //previous control point, used and updated when handle command curve, quaratic,...
 
- 
-    
-    char end = cmd.back().getCmd();
-
     for (int i = 0; i < size; i++){
         char c = cmd[i].getCmd();
 
@@ -171,23 +169,25 @@ void Drawer::DrawP(Shapes::Object* obj){
             if (c == 'M'){
                 pre = cur = coor.back();
                 if (pSize == 1){
-                    //path.AddLine(coor[0], coor[0]);
                 }else{
                     for (int j = 0; j < coor.size() - 1; j++){
                         path.AddLine(coor[j], coor[j + 1]);
                     }
                 }
+                cout << "Move to (absolute) : " << debug(pre) << endl;
             }
             else {
-                pre = coor.front() + pre;
                 if (pSize == 1){
-                    //path.AddLine(coor[0] + pre, coor[0] + pre);
+                    pre = coor.front() + pre;
                 }else{
+                    pre = coor.front() + pre;
                     for (int j = 0; j < coor.size() - 1; j++){
-                        path.AddLine(coor[j] + pre, coor[j + 1] + pre);
+                        path.AddLine(pre, coor[j + 1] + pre);
+                        pre = pre + coor[j + 1];
                     }
                 }
-                pre = cur = coor.back() + pre;
+                cur = pre;
+                cout << "move to (relative) : " << debug(pre) << endl;
             }
         }
         else if (c == 'L' || c == 'l'){
@@ -257,8 +257,6 @@ void Drawer::DrawP(Shapes::Object* obj){
                 path.AddBezier(pre, Control1, Control2, cur);
                 pre = cur;
             }
-
-            cur = pre;
             preCurve = Control2;
 
             cout << "Cubic Bezier (absolute)\n";
@@ -270,10 +268,6 @@ void Drawer::DrawP(Shapes::Object* obj){
                 Control1 = coor[j++] + pre;
                 Control2 = coor[j++] + pre;
                 cur = coor[j] + pre;
-                cout << "Pre:";debug(pre);
-                cout << "\nC1 : "; debug(Control1);
-                cout << "\nC2: "; debug(Control2);
-                cout << "\ncur : "; debug(cur);
                 path.AddBezier(pre, Control1, Control2, cur);
                 pre = cur;
             }
@@ -283,8 +277,14 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Cubic Bezier (relative)\n";
         }
         else if (c == 'S'){
-            PointF Control1 = pre + pre - preCurve;
-            PointF Control2 = coor[0];
+            PointF Control1 (0,0);
+            PointF Control2 (0,0);
+            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                Control1 = pre + pre - preCurve;
+            }else{
+                Control1 = pre;
+            }
+            Control2 = coor[0];
             cur = coor[1];
             
             path.AddBezier(pre, Control1, Control2, cur);
@@ -383,16 +383,13 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
         else if (c == 'Z' || c == 'z'){
             path.CloseFigure();
-            g->DrawPath(&p, &path);
-            g->FillPath(&b, &path);
-            g->ResetTransform();
-            path.Reset();
+            path.SetFillMode(FillModeWinding);
             cout << "Close\n";
         }
     }
+    char end = cmd.back().getCmd();
     g->DrawPath(&p, &path);
     g->FillPath(&b, &path);
-    g->ResetTransform();
 }
 
 void Drawer::DrawG(Shapes::Object* obj){
