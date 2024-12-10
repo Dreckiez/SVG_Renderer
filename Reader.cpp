@@ -98,22 +98,48 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
 }
 
 void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
+    float fontsize;
+    if (E->Attribute("font-size")){
+        fontsize = E->FloatAttribute("font-size");
+        text->setFontSize(fontsize);
+    }
+    
     Shapes::Point top;
 
     top.SetX(E->FloatAttribute("x"));
-    top.SetY(E->FloatAttribute("y"));
+    top.SetY(E->FloatAttribute("y") - 1.33 * text->getFontSize());
+
     text->setTop(top);
 
-    float fontSize = E->FloatAttribute("font-size");
-    text->setFontSize(fontSize);
+
+    const char* FF = E->Attribute("font-family");
+    const char* FS = E->Attribute("font-style");
+    const char* TA = E->Attribute("text-anchor");
+
+    if (FF){
+        string tmp = FF;
+        text->setFontFamily(tmp);
+    }
+
+    if (FS){
+        string tmp = FS;
+        text->setFontStyle(tmp);
+    }
+
+    if (TA){
+        string tmp = TA;
+        text->setTextAnchor(tmp);
+    }
 
     const char* t = E->GetText();
     if (t) {
-    	std::string textStr(t);
+    	string textStr(t);
         text->setText(textStr);
     }
 
     text->SetAttribute(E);
+
+    // text->CheckAtt();
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
@@ -145,7 +171,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         }
     }
 
-    cout << d << endl;
+    // cout << d << endl;
 
     stringstream ss(d);
     
