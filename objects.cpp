@@ -253,14 +253,36 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
     while(getline(ss, type, '(')){
         if(type == "translate"){
-            getline(ss, para, ',');
-            translate_x = stof(para);
             getline(ss, para, ')');
-            translate_y = stof(para);
+            // getline(ss, para, ',');
+            // translate_x = stof(para);
+            // getline(ss, para, ')');
+            // translate_y = stof(para);
+            // getline(ss, para, ' ');
+            int size = para.length();
+            string number_string;
+            for(int i = 0; i < size; i++){
+                if(para[i] != ',' && para[i] != ' '){
+                    number_string += para[i];
+                }
+                else if(translate_x == 0){
+                    translate_x = stof(number_string);
+                    number_string = "";
+                    if(para[i+1] == ' ' || para[i+1] == ','){
+                        i++;
+                    }
+                }
+                if(i == size-1){
+                    translate_y = stof(number_string);
+                }
+            }
+            cout << endl << translate_x << " " << translate_y << endl;
             getline(ss, para, ' ');
             translate_x*=s;
             translate_y*=s;
             M.Translate(translate_x, translate_y);
+            translate_x = 0;
+            translate_y = 0;
         }
         else if(type == "scale"){
             string temp;
