@@ -160,6 +160,7 @@ void Drawer::DrawT(Shapes::Object* obj){
     g->DrawPath(&p, &text);
     g->FillPath(&b, &text);
     g->ResetTransform();
+}
 
     delete ff;
 }
@@ -167,7 +168,11 @@ void Drawer::DrawT(Shapes::Object* obj){
 void Drawer::DrawP(Shapes::Object* obj){
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
+<<<<<<< HEAD
     Gdiplus::GraphicsPath path;
+=======
+    GraphicsPath path(FillModeWinding);
+>>>>>>> Drawer
 
     Gdiplus::Matrix Ma;
     P->setTransform(Ma, s, anchor);
