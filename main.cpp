@@ -79,7 +79,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             Graphics graphics(hdc);
             graphics.Clear(Color(255, 255, 255, 255));
             graphics.SetSmoothingMode(SmoothingModeAntiAlias);
-
             PointF anchor;
             if (scale_mouse){
                 POINT mouse_pos;

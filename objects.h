@@ -51,6 +51,7 @@ namespace Shapes{
         RGBA stroke;
         float stroke_width;
         string Transform;
+        string fillRule;
     public:
         Object();
         virtual ~Object() = default;
@@ -62,6 +63,9 @@ namespace Shapes{
         void SetStroke(string s);
         void SetColorAlpha(float alpha);
         void SetStrokeAlpha(float alpha);
+
+        void SetFillRule(string s);
+        string getFillRule();
 
         Shapes::RGBA getColor();
         Shapes::RGBA getStroke();
