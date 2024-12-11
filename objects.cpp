@@ -58,7 +58,6 @@ void Shapes::RGBA::SetAlpha(float a){
 }
 
 void Shapes::RGBA::SetRGB(string s){
-    // cout << s << " ";
     if (s == "none"){
         opacity = 0;
     }
@@ -121,8 +120,6 @@ void Shapes::RGBA::SetRGB(string s){
         stringstream ss(s);
         ss >> red >> green >> blue;
     }
-
-    // cout << red << ' ' << green << ' ' << blue << ' ' << opacity << '\n';
 }
 
 Shapes::Point::Point(){
@@ -173,9 +170,6 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
-    
-    // cout << S << '\n';
-    // cout << C << '\n';
     
     if (T != nullptr) setTransformString(T);
     if (C != nullptr){
@@ -250,17 +244,33 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
-    translate_x*=s;
-    translate_y*=s;
     M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
     while(getline(ss, type, '(')){
         if(type == "translate"){
-            getline(ss, para, ',');
-            translate_x = atof(para.c_str());
             getline(ss, para, ')');
-            translate_y = atof(para.c_str());
+            int size = para.length();
+            string number_string;
+            for(int i = 0; i < size; i++){
+                if(para[i] != ',' && para[i] != ' '){
+                    number_string += para[i];
+                }
+                else if(translate_x == 0){
+                    translate_x = stof(number_string);
+                    number_string = "";
+                    if(para[i+1] == ' ' || para[i+1] == ','){
+                        i++;
+                    }
+                }
+                if(i == size-1){
+                    translate_y = stof(number_string);
+                }
+            }
             getline(ss, para, ' ');
+            translate_x*=s;
+            translate_y*=s;
             M.Translate(translate_x, translate_y);
+            translate_x = 0;
+            translate_y = 0;
         }
         else if(type == "scale"){
             string temp;
