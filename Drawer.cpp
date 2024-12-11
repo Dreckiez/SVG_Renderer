@@ -97,7 +97,7 @@ void Drawer::DrawPL(Shapes::Object* obj){
     Pen p(Gdiplus::Color(PL->getStroke().GetAlpha()*255, PL->getStroke().GetRed(), PL->getStroke().GetGreen(), PL->getStroke().GetBlue()), PL->getStrokeWidth() * s);
     SolidBrush b(Gdiplus::Color(PL->getColor().GetAlpha()*255, PL->getColor().GetRed(), PL->getColor().GetGreen(), PL->getColor().GetBlue()));
     g->FillPolygon(&b, pF.data(), static_cast<int> (pF.size()));
-    if (PL->getStrokeWidth() != 0) g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
+    g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
     g->ResetTransform();
 }
 
@@ -154,7 +154,7 @@ void Drawer::DrawT(Shapes::Object* obj){
 
     Gdiplus::GraphicsPath text;
     text.StartFigure();
-    text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
+    text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
     text.CloseFigure();
 
     g->DrawPath(&p, &text);
@@ -182,15 +182,15 @@ void Drawer::DrawP(Shapes::Object* obj){
 
     int pos = 0;
     //all command has to update cur and pre accordingly
-    PointF cur(0,0);     //current position of pen
-    PointF pre(0,0);     // 1 point before cur. cur will be updated first then AddLine or watever before updating pre
-    PointF preCurve(0,0);    //previous control point, used and updated when handle command curve, quaratic,...
+    Gdiplus::PointF cur(0,0);     //current position of pen
+    Gdiplus::PointF pre(0,0);     // 1 point before cur. cur will be updated first then AddLine or watever before updating pre
+    Gdiplus::PointF preCurve(0,0);    //previous control point, used and updated when handle command curve, quaratic,...
 
 
     for (int i = 0; i < size; i++){
         char c = cmd[i].getCmd();
 
-        vector<PointF> coor = cmd[i].getPoints();
+        vector<Gdiplus::PointF> coor = cmd[i].getPoints();
 
         for (int i = 0; i < coor.size(); i++){
             coor[i].X *= s;
@@ -295,8 +295,8 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Cubic Bezier (absolute)\n";
         }
         else if (c == 'c'){
-            PointF Control1;
-            PointF Control2;
+            Gdiplus::PointF Control1;
+            Gdiplus::PointF Control2;
             for (int j = 0; j < coor.size(); j++){
                 Control1 = coor[j++] + pre;
                 Control2 = coor[j++] + pre;
@@ -310,8 +310,8 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Cubic Bezier (relative)\n";
         }
         else if (c == 'S'){
-            PointF Control1 (0,0);
-            PointF Control2 (0,0);
+            Gdiplus::PointF Control1 (0,0);
+            Gdiplus::PointF Control2 (0,0);
 
             if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
                 Control1 = pre + pre - preCurve;
@@ -330,9 +330,15 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Smooth Cubic Bezier (absolute)\n";
         }
         else if (c == 's'){
-            PointF Control1 = pre + pre - preCurve;
-            PointF Control2 = pre + coor[0];
-            PointF cur = pre + coor[1];
+            Gdiplus::PointF Control1 (0,0);
+            Gdiplus::PointF Control2 (0,0);
+            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                Control1 = pre + pre - preCurve;
+            }else{
+                Control1 = pre;
+            }
+            Control2 = pre + coor[0];
+            cur = pre + coor[1];
             
             path.AddBezier(pre, Control1, Control2, cur);
             
@@ -342,14 +348,14 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Smooth Cubic Bezier (relative)\n";
         }
         else if (c == 'Q'){
-            PointF Quad = coor[0];
+            Gdiplus::PointF Quad = coor[0];
             cur = coor[1];
 
-            PointF Control1 = pre;
+            Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
             Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            PointF Control2 = cur;
+            Gdiplus::PointF Control2 = cur;
             Control2.X += 2 * (Quad.X - cur.X) / 3.0;
             Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;            
 
@@ -360,14 +366,14 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Quadratic Bezier (absolute)\n";
         }
         else if (c == 'q'){
-            PointF Quad = pre + coor[0];
+            Gdiplus::PointF Quad = pre + coor[0];
             cur = pre + coor[1];
 
-            PointF Control1 = pre;
+            Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
             Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            PointF Control2 = cur;
+            Gdiplus::PointF Control2 = cur;
             Control2.X += 2 * (Quad.X - cur.X) / 3.0;
             Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
 
@@ -379,14 +385,14 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Quadratic Bezier (relative)\n";
         }
         else if (c == 'T'){
-            PointF Quad = pre + pre - preCurve;
+            Gdiplus::PointF Quad = pre + pre - preCurve;
             cur = coor[0];
 
-            PointF Control1 = pre;
+            Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
             Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            PointF Control2 = cur;
+            Gdiplus::PointF Control2 = cur;
             Control2.X += 2 * (Quad.X - cur.X) / 3.0;
             Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
 
@@ -398,14 +404,14 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Smooth Quadratic Bezier (absolute)\n";
         }
         else if (c == 't'){
-            PointF Quad = pre + pre - preCurve;
+            Gdiplus::PointF Quad = pre + pre - preCurve;
             cur = pre + coor[0];
 
-            PointF Control1 = pre;
+            Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
             Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            PointF Control2 = cur;
+            Gdiplus::PointF Control2 = cur;
             Control2.X += 2 * (Quad.X - cur.X) / 3.0;
             Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
 

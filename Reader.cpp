@@ -1,5 +1,23 @@
 #include "Reader.h"
 
+void addSpaces(string &s){
+    //replace all delimeter into spaces
+    for (int i = 0; i < s.size(); i++){
+        if ((s[i] == ',' || s[i] == '\n')){
+            s[i]= ' ';
+        }
+    }
+}
+void removeSpareSpaces(string &s){
+    //remove excessive spaces
+    for (int i = 0; i < s.size() - 1; i++){
+        if (s[i] == ' ' && s[i + 1] == ' '){
+            s.erase(i, 1);
+           i--;
+        }
+    }
+}
+
 Reader::Reader() {
     cout << "Reader constructed\n";
 }
@@ -78,18 +96,19 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
 
 void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
     vector<Shapes::Point> points;
-    stringstream ss(E->Attribute("points"));
+    string po = E->Attribute("points");
 
-    string tmp;
-    while (ss >> tmp) {
-        stringstream pointStream(tmp);
-        string xStr, yStr;
-        getline(pointStream, xStr, ',');
-        getline(pointStream, yStr);
+    addSpaces(po);
+    removeSpareSpaces(po);
 
+
+    stringstream ss(po);
+
+    float x = 0, y = 0;
+    while (ss >> x >> y) {
         Shapes::Point p;
-        p.SetX(atof(xStr.c_str()));
-        p.SetY(atof(yStr.c_str()));
+        p.SetX(x);
+        p.SetY(y);
         points.push_back(p);
     }
     polyline->setPoints(points);
@@ -144,12 +163,7 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     string d = E->Attribute("d");
 
-    //replace all delimeter into spaces
-    for (int i = 0; i < d.size(); i++){
-        if ((d[i] == ',' || d[i] == '\n')){
-            d[i]= ' ';
-        }
-    }
+    addSpaces(d);
 
     //insert spaces between command and numbers
     for (int i = 0; i < d.size() - 1; i++){
@@ -162,13 +176,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         }
     }
 
-    //remove excessive spaces
-    for (int i = 0; i < d.size() - 1; i++){
-        if (d[i] == ' ' && d[i + 1] == ' '){
-            d.erase(i, 1);
-            i--;
-        }
-    }
+    removeSpareSpaces(d);
 
 
     stringstream ss(d);
