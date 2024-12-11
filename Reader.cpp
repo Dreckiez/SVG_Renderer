@@ -139,7 +139,6 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 
     text->SetAttribute(E);
 
-    // text->CheckAtt();
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
@@ -147,7 +146,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     //replace all delimeter into spaces
     for (int i = 0; i < d.size(); i++){
-        if ((d[i] == ',' || d[i] == '.' || d[i] == '\n')){
+        if ((d[i] == ',' || d[i] == '\n')){
             d[i]= ' ';
         }
     }
@@ -171,7 +170,6 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         }
     }
 
-    // cout << d << endl;
 
     stringstream ss(d);
     
@@ -181,7 +179,6 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     while (ss >> c){
         if (ss.fail()){
-
             break;
         }
         
@@ -206,19 +203,12 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
                     cmd.addPoint(p);
                 }else{
                     ss.clear(); // Clear the fail state
-                    //ss.ignore(numeric_limits<streamsize>::max(), ' ');
                     break;
                 }
             }
         }
         path->add(cmd);
-        // cout << ss.str() << endl;
     }
-
-    /* for (int i = 0; i < path->getCmd().size(); i++){
-        cout << path->getCmdAt(i).toString() << endl;
-    } */
-    
 
     path->SetAttribute(E);
 }
