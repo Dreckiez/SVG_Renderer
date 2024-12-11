@@ -75,18 +75,17 @@ void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
 
 void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
     vector<Shapes::Point> points;
-    stringstream ss(E->Attribute("points"));
+    string po = E->Attribute("points");
 
-    string tmp;
-    while (ss >> tmp) {
-        stringstream pointStream(tmp);
-        string xStr, yStr;
-        getline(pointStream, xStr, ',');
-        getline(pointStream, yStr);
+    addSpaces(po);
+    removeSpareSpaces(po);
 
+    stringstream ss(po);
+    float x = 0, y = 0;
+    while (ss >> x >> y) {
         Shapes::Point p;
-        p.SetX(atof(xStr.c_str()));
-        p.SetY(atof(yStr.c_str()));
+        p.SetX(x);
+        p.SetY(y);
         points.push_back(p);
     }
     polygon->setPoints(points);
