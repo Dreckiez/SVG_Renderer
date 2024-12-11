@@ -58,8 +58,12 @@ void Shapes::RGBA::SetAlpha(float a){
 }
 
 void Shapes::RGBA::SetRGB(string s){
+    if (s == ""){
+        cout << "nothing\n";
+    }
     if (s == "none"){
-        opacity = 0;
+        cout << "none\n";
+        opacity = 0.0;
     }
     else if (s.find('#') != string::npos){
         // HEX CODE format
@@ -172,15 +176,6 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     const char* T = E->Attribute("transform");
     
     if (T != nullptr) setTransformString(T);
-    if (C != nullptr){
-        
-        SetColor(C);
-    }
-    if (S != nullptr){
-    
-        SetStroke(S);
-        
-    }
 
     const char* check = E->Attribute("fill-opacity");
     if (check != nullptr)
@@ -191,7 +186,22 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     if (check != nullptr)
         SetStrokeAlpha((float)atof(check));
         
-    setStrokeWidth(E->Attribute("stroke-width") == nullptr ? 0 : E->FloatAttribute("stroke-width"));
+    if(E->Attribute("stroke-width") != nullptr)
+        setStrokeWidth(E->FloatAttribute("stroke-width"));
+
+    if (C != nullptr){
+        SetColor(C);
+    }
+
+    if (S != nullptr){
+        SetStroke(S);
+    }
+    
+    const char* fillRule = E->Attribute("fill-rule");
+    if (fillRule == NULL)
+        fillRule = "nonzero";
+    else
+        SetFillRule(fillRule);
 }
 
 void Shapes::Object::SetColor(string s){
@@ -209,6 +219,14 @@ void Shapes::Object::SetColorAlpha(float alpha){
 
 void Shapes::Object::SetStrokeAlpha(float alpha){
     stroke.SetAlpha(alpha);
+}
+
+void Shapes::Object::SetFillRule(string fillRule){
+    this->fillRule = fillRule;
+}
+
+string Shapes::Object::getFillRule(){
+    return fillRule;
 }
 
 Shapes::RGBA Shapes::Object::getColor(){

@@ -8,6 +8,7 @@ void addSpaces(string &s){
         }
     }
 }
+
 void removeSpareSpaces(string &s){
     //remove excessive spaces
     for (int i = 0; i < s.size() - 1; i++){
@@ -75,13 +76,16 @@ void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
 
 void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
     vector<Shapes::Point> points;
-    string po = E->Attribute("points");
+    string p = E->Attribute("points");
 
-    addSpaces(po);
-    removeSpareSpaces(po);
+    addSpaces(p);
+    removeSpareSpaces(p);
 
-    stringstream ss(po);
-    float x = 0, y = 0;
+    stringstream ss(p);
+
+    float x = 0;
+    float y = 0;
+    string tmp;
     while (ss >> x >> y) {
         Shapes::Point p;
         p.SetX(x);
@@ -95,15 +99,16 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
 
 void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
     vector<Shapes::Point> points;
-    string po = E->Attribute("points");
+    string p = E->Attribute("points");
 
-    addSpaces(po);
-    removeSpareSpaces(po);
+    addSpaces(p);
+    removeSpareSpaces(p);
 
+    stringstream ss(p);
 
-    stringstream ss(po);
-
-    float x = 0, y = 0;
+    float x = 0;
+    float y = 0;
+    string tmp;
     while (ss >> x >> y) {
         Shapes::Point p;
         p.SetX(x);
@@ -124,9 +129,20 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     
     Shapes::Point top;
 
-    top.SetX(E->FloatAttribute("x"));
-    top.SetY(E->FloatAttribute("y") - 1.33 * text->getFontSize());
+    float x = E->FloatAttribute("x");
+    float y = (E->FloatAttribute("y"));
+    float dx = 0, dy = 0;
 
+    if (E->Attribute("dx")){
+        dx = E->FloatAttribute("dx");
+    }
+
+    if (E->Attribute("dy")){
+        dy = E->FloatAttribute("dy");
+    }
+
+    top.SetX(x + dx);
+    top.SetY(y + dy - 1.33 * text->getFontSize());
     text->setTop(top);
 
 
@@ -157,11 +173,13 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 
     text->SetAttribute(E);
 
+    // text->CheckAtt();
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
     string d = E->Attribute("d");
 
+    //replace all delimeter into spaces
     addSpaces(d);
 
     //insert spaces between command and numbers
@@ -177,6 +195,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     removeSpareSpaces(d);
 
+    // cout << d << endl;
 
     stringstream ss(d);
     
@@ -186,6 +205,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     while (ss >> c){
         if (ss.fail()){
+
             break;
         }
         
@@ -210,12 +230,19 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
                     cmd.addPoint(p);
                 }else{
                     ss.clear(); // Clear the fail state
+                    //ss.ignore(numeric_limits<streamsize>::max(), ' ');
                     break;
                 }
             }
         }
         path->add(cmd);
+        // cout << ss.str() << endl;
     }
+
+    for (int i = 0; i < path->getCmd().size(); i++){
+        cout << path->getCmdAt(i).toString() << endl;
+    }
+    
 
     path->SetAttribute(E);
 }

@@ -1,5 +1,13 @@
 #include "Drawer.h"
 
+void Drawer::setDrawer(Shapes::Object* obj){
+    obj->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
+    p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
+    p->SetWidth(obj->getStrokeWidth() * s);
+    b->SetColor(Gdiplus::Color(obj->getColor().GetAlpha()*255, obj->getColor().GetRed(), obj->getColor().GetGreen(), obj->getColor().GetBlue()));
+}
+
 Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
     int n = list.size();
     for(int i = 0; i < n; i++){
@@ -9,107 +17,84 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     this->g = g;
     this->s = s;
     this->anchor = anchor;
+    p = new Pen(Color(0,0,0,0), 0);
+    b = new SolidBrush(Color(0,0,0,0));
 }
 
 void Drawer::DrawR(Shapes::Object* obj){
+    setDrawer(obj);
     Shapes::Rectangle* R = dynamic_cast<Shapes::Rectangle*>(obj);
 
-    Gdiplus::Matrix Ma;
-    R->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-    Pen p(Gdiplus::Color(R->getStroke().GetAlpha()*255, R->getStroke().GetRed(), R->getStroke().GetGreen(), R->getStroke().GetBlue()), R->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(R->getColor().GetAlpha()*255, R->getColor().GetRed(), R->getColor().GetGreen(), R->getColor().GetBlue()));
-    g->FillRectangle(&b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
-    g->DrawRectangle(&p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+    g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+    g->DrawRectangle(p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
     g->ResetTransform();
 }
 
 void Drawer::DrawL(Shapes::Object* obj){
+   setDrawer(obj);
     Shapes::Line* L = dynamic_cast<Shapes::Line*>(obj);
 
-    Gdiplus::Matrix Ma;
-    L->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-
-    Pen p(Gdiplus::Color(L->getStroke().GetAlpha()*255, L->getStroke().GetRed(), L->getStroke().GetGreen(), L->getStroke().GetBlue()), L->getStrokeWidth() * s);
-    g->DrawLine(&p, L->getStart().GetX() * s, L->getStart().GetY() * s, L->getEnd().GetX() * s, L->getEnd().GetY() * s);
+    g->DrawLine(p, L->getStart().GetX() * s, L->getStart().GetY() * s, L->getEnd().GetX() * s, L->getEnd().GetY() * s);
     g->ResetTransform();
 }
 
 void Drawer::DrawC(Shapes::Object* obj){
+    setDrawer(obj);
     Shapes::Circle* C = dynamic_cast<Shapes::Circle*>(obj);
 
-    Gdiplus::Matrix Ma;
-    C->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-    
-    Pen p(Gdiplus::Color(C->getStroke().GetAlpha()*255, C->getStroke().GetRed(), C->getStroke().GetGreen(), C->getStroke().GetBlue()), C->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(C->getColor().GetAlpha()*255, C->getColor().GetRed(), C->getColor().GetGreen(), C->getColor().GetBlue()));
-    g->FillEllipse(&b, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
-    g->DrawEllipse(&p, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
+    g->FillEllipse(b, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
+    g->DrawEllipse(p, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
     g->ResetTransform();
 }
 
 void Drawer::DrawE(Shapes::Object* obj){
+    setDrawer(obj);
     Shapes::Ellipse* E = dynamic_cast<Shapes::Ellipse*>(obj);
 
-    Gdiplus::Matrix Ma;
-    E->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-    
-    Pen p(Gdiplus::Color(E->getStroke().GetAlpha()*255, E->getStroke().GetRed(), E->getStroke().GetGreen(), E->getStroke().GetBlue()), E->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(E->getColor().GetAlpha()*255, E->getColor().GetRed(), E->getColor().GetGreen(), E->getColor().GetBlue()));
-    g->FillEllipse(&b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
-    g->DrawEllipse(&p, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
+    g->FillEllipse(b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
+    g->DrawEllipse(p, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
     g->ResetTransform();
 }
 
 void Drawer::DrawPG(Shapes::Object* obj){
+    setDrawer(obj);
     vector<Gdiplus::PointF> list;
     Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj);
     int n = PG->getPoints().size();
     for (int i = 0; i < n; i++){
         list.push_back({PG->getPoints()[i].GetX() * s, PG->getPoints()[i].GetY() * s});
     }
-    Gdiplus::Matrix Ma;
-    PG->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-    
-    Pen p(Gdiplus::Color(PG->getStroke().GetAlpha()*255, PG->getStroke().GetRed(), PG->getStroke().GetGreen(), PG->getStroke().GetBlue()), PG->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(PG->getColor().GetAlpha()*255, PG->getColor().GetRed(), PG->getColor().GetGreen(), PG->getColor().GetBlue()));
 
-    g->FillPolygon(&b, list.data(), static_cast<int> (PG->getPoints().size()));
-    g->DrawPolygon(&p, list.data(), static_cast<int> (PG->getPoints().size()));
+    GraphicsPath path;
+    if (obj->getFillRule() == "nonzero"){
+        path.SetFillMode(FillModeWinding);
+    }else{
+        path.SetFillMode(FillModeAlternate);
+    }
+    path.AddPolygon(list.data(), PG->getPoints().size());
+    g->FillPath(b, &path);
+    g->DrawPath(p, &path);
     g->ResetTransform();
 }
 
 void Drawer::DrawPL(Shapes::Object* obj){
+    setDrawer(obj);
     vector <Gdiplus::PointF> pF;
     Shapes::Polyline* PL = dynamic_cast <Shapes::Polyline*> (obj);
     int size = PL->getPoints().size();
     for (int i = 0; i < size; i++){
         pF.push_back({PL->getPoints()[i].GetX() * s, PL->getPoints()[i].GetY() * s});
     }
-    Gdiplus::Matrix Ma;
-    PL->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     
-    Pen p(Gdiplus::Color(PL->getStroke().GetAlpha()*255, PL->getStroke().GetRed(), PL->getStroke().GetGreen(), PL->getStroke().GetBlue()), PL->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(PL->getColor().GetAlpha()*255, PL->getColor().GetRed(), PL->getColor().GetGreen(), PL->getColor().GetBlue()));
-    g->FillPolygon(&b, pF.data(), static_cast<int> (pF.size()));
-    g->DrawLines(&p, pF.data(), static_cast<int>(pF.size()));
+
+    g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
+    g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
     g->ResetTransform();
 }
 
 void Drawer::DrawT(Shapes::Object* obj){
+    setDrawer(obj);
     Shapes::Text* T = dynamic_cast<Shapes::Text*>(obj);
-
-    Gdiplus::Matrix Ma;
-    T->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-
-    Pen p(Gdiplus::Color(T->getStroke().GetAlpha()*255, T->getStroke().GetRed(), T->getStroke().GetGreen(), T->getStroke().GetBlue()), T->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(T->getColor().GetAlpha()*255, T->getColor().GetRed(), T->getColor().GetGreen(), T->getColor().GetBlue()));
 
     // Create a wide string for Font Family 
     size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
@@ -157,25 +142,24 @@ void Drawer::DrawT(Shapes::Object* obj){
     text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
     text.CloseFigure();
 
-    g->DrawPath(&p, &text);
-    g->FillPath(&b, &text);
+    g->DrawPath(p, &text);
+    g->FillPath(b, &text);
     g->ResetTransform();
 
     delete ff;
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
+    setDrawer(obj);
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
-    Gdiplus::GraphicsPath path(Gdiplus::FillModeWinding);
-
-    Gdiplus::Matrix Ma;
-    P->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
-
-    Pen p(Gdiplus::Color(P->getStroke().GetAlpha()*255, P->getStroke().GetRed(), P->getStroke().GetGreen(), P->getStroke().GetBlue()), P->getStrokeWidth() * s);
-    SolidBrush b(Gdiplus::Color(P->getColor().GetAlpha()*255, P->getColor().GetRed(), P->getColor().GetGreen(), P->getColor().GetBlue()));
-
+    Gdiplus::GraphicsPath path;
+    if (obj->getFillRule() == "nonzero"){
+        path.SetFillMode(FillModeWinding);
+    }else{
+        path.SetFillMode(FillModeAlternate);
+    }
+    
     int size = P->getCmd().size();
 
     vector<Shapes::Command> cmd = P->getCmd();
@@ -429,11 +413,13 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
     }
     char end = cmd.back().getCmd();
-    g->DrawPath(&p, &path);
-    g->FillPath(&b, &path);
+    g->DrawPath(p, &path);
+    g->FillPath(b, &path);
+    g->ResetTransform();
 }
 
 void Drawer::DrawG(Shapes::Object* obj){
+    setDrawer(obj);
     Shapes::Group* G = dynamic_cast<Shapes::Group*>(obj);
     for (int i = 0; i < G->GetSize(); i++){
         if(dynamic_cast <Shapes::Rectangle*> (G->GetShape(i))){
@@ -463,15 +449,18 @@ void Drawer::DrawG(Shapes::Object* obj){
             DrawG(G->GetShape(i));
         }
     }
+    g->ResetTransform();
 }
 
 void Drawer::Draw(){
     for (int i = 0; i < shapeList.size(); i++){
         Shapes::Object* rawPtr = shapeList[i].get();
         if(dynamic_cast <Shapes::Rectangle*> (rawPtr)){
+            cout << "rect";
             DrawR(rawPtr);
         }
         else if(dynamic_cast <Shapes::Line*> (rawPtr)){
+            cout << "line";
             DrawL(rawPtr);
         }
         else if(dynamic_cast <Shapes::Circle*> (rawPtr)){
@@ -489,6 +478,7 @@ void Drawer::Draw(){
         else if(dynamic_cast <Shapes::Text*> (rawPtr)){
             DrawT(rawPtr);
         }else if(dynamic_cast <Shapes::Path*> (rawPtr)){
+            cout << "path\n";
             DrawP(rawPtr);
         }
         else if (dynamic_cast<Shapes::Group*> (rawPtr)){
