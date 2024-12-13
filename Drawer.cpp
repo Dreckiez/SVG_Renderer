@@ -1,5 +1,10 @@
 #include "Drawer.h"
 
+void Drawer::Reset(){
+    g->ResetTransform();
+    Ma.Reset();
+}
+
 void Drawer::setDrawer(Shapes::Object* obj){
     obj->setTransform(Ma, s, anchor);
     g->SetTransform(&Ma);
@@ -27,7 +32,7 @@ void Drawer::DrawR(Shapes::Object* obj){
 
     g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
     g->DrawRectangle(p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawL(Shapes::Object* obj){
@@ -35,16 +40,16 @@ void Drawer::DrawL(Shapes::Object* obj){
     Shapes::Line* L = dynamic_cast<Shapes::Line*>(obj);
 
     g->DrawLine(p, L->getStart().GetX() * s, L->getStart().GetY() * s, L->getEnd().GetX() * s, L->getEnd().GetY() * s);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawC(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Circle* C = dynamic_cast<Shapes::Circle*>(obj);
-
+    
     g->FillEllipse(b, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
     g->DrawEllipse(p, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawE(Shapes::Object* obj){
@@ -53,7 +58,7 @@ void Drawer::DrawE(Shapes::Object* obj){
 
     g->FillEllipse(b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
     g->DrawEllipse(p, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawPG(Shapes::Object* obj){
@@ -74,7 +79,7 @@ void Drawer::DrawPG(Shapes::Object* obj){
     path.AddPolygon(list.data(), PG->getPoints().size());
     g->FillPath(b, &path);
     g->DrawPath(p, &path);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawPL(Shapes::Object* obj){
@@ -89,7 +94,7 @@ void Drawer::DrawPL(Shapes::Object* obj){
 
     g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
     g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawT(Shapes::Object* obj){
@@ -144,7 +149,7 @@ void Drawer::DrawT(Shapes::Object* obj){
 
     g->DrawPath(p, &text);
     g->FillPath(b, &text);
-    g->ResetTransform();
+    Reset();
 
     delete ff;
 }
@@ -415,11 +420,10 @@ void Drawer::DrawP(Shapes::Object* obj){
     char end = cmd.back().getCmd();
     g->DrawPath(p, &path);
     g->FillPath(b, &path);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawG(Shapes::Object* obj){
-    setDrawer(obj);
     Shapes::Group* G = dynamic_cast<Shapes::Group*>(obj);
     for (int i = 0; i < G->GetSize(); i++){
         if(dynamic_cast <Shapes::Rectangle*> (G->GetShape(i))){
@@ -449,7 +453,7 @@ void Drawer::DrawG(Shapes::Object* obj){
             DrawG(G->GetShape(i));
         }
     }
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::Draw(){
