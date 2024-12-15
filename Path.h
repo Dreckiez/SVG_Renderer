@@ -7,15 +7,15 @@ namespace Shapes{
     class Command{
     private:
         char cmd;
-        vector<Gdiplus::PointF> points;
+        vector<float> nums;
     public:
         Command();
 
         char getCmd();
         void setCmd(char c);
 
-        vector<Gdiplus::PointF> getPoints();
-        void addPoint(PointF p);
+        vector<float> getNums();
+        void addNum(float p);
 
         string toString();
     };

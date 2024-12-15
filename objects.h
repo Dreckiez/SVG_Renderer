@@ -50,6 +50,7 @@ namespace Shapes{
         RGBA color;
         RGBA stroke;
         float stroke_width;
+        int stroke_miterlimit;
         string Transform;
         string fillRule;
     public:
@@ -70,7 +71,9 @@ namespace Shapes{
         Shapes::RGBA getColor();
         Shapes::RGBA getStroke();
 
+        void setStrokeMiterLimit(int lim);
         void setStrokeWidth(float width);
+        int getStrokeMiterLimit();
         float getStrokeWidth();
 
         void setTransformString(const char* T);

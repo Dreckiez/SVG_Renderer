@@ -10,17 +10,17 @@ Command::Command(){
 char Command::getCmd() { return cmd; }
 void Command::setCmd(char c) { cmd = c; } 
 
-vector<Gdiplus::PointF> Command::getPoints() { return points; }
+vector<float> Command::getNums() { return nums; }
 
-void Command::addPoint(PointF p){
-    points.push_back(p);
+void Command::addNum(float p){
+    nums.push_back(p);
 }
 
 string Command::toString(){
     string s = "";
     s += cmd;
-    for (int i = 0; i < points.size(); i++){
-        s += to_string(points[i].X) + ' ' + to_string(points[i].Y) + ' ';
+    for (int i = 0; i < nums.size(); i++){
+        s += to_string(nums[i]) + ' ';
     }
     return s;
 }

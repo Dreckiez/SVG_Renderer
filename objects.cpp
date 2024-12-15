@@ -167,6 +167,8 @@ Shapes::Object::Object(){
     stroke_width = 0;
     stroke.SetAlpha(0);
     Transform = "";
+    stroke_miterlimit = 4;
+    fillRule = "nonzero";
 }
 
 void Shapes::Object::CopyAttribute(const Object &other){
@@ -206,8 +208,11 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     const char* FR = E->Attribute("fill-rule");
     if (FR){
         SetFillRule(FR);
-    }else{
-        fillRule = "nonzero";
+    }
+
+    FR = E->Attribute("stroke-miterlimit");
+    if (FR){
+        setStrokeMiterLimit(E->FloatAttribute("stroke-miterlimit"));
     }
 }
 
@@ -242,6 +247,14 @@ Shapes::RGBA Shapes::Object::getColor(){
 
 Shapes::RGBA Shapes::Object::getStroke(){
     return stroke;
+}
+
+void Shapes::Object::setStrokeMiterLimit(int lim){
+    stroke_miterlimit = lim;
+}
+
+int Shapes::Object::getStrokeMiterLimit(){
+    return stroke_miterlimit;
 }
 
 void Shapes::Object::setStrokeWidth(float width) {
