@@ -61,7 +61,7 @@ void Shapes::RGBA::SetRGB(string s){
     if (s == ""){
         cout << "nothing\n";
     }
-    if (s == "none"){
+    if (s == "none" || s == "transparent"){
         cout << "none\n";
         opacity = 0.0;
     }
@@ -124,6 +124,12 @@ void Shapes::RGBA::SetRGB(string s){
         stringstream ss(s);
         ss >> red >> green >> blue;
     }
+    if (red > 255)
+        red = 255;
+    if (green > 255)
+        green = 255;
+    if (blue > 255)
+        blue = 255;
 }
 
 Shapes::Point::Point(){
@@ -197,11 +203,12 @@ void Shapes::Object::SetAttribute(XMLElement* E){
         SetStroke(S);
     }
     
-    const char* fillRule = E->Attribute("fill-rule");
-    if (fillRule == NULL)
+    const char* FR = E->Attribute("fill-rule");
+    if (FR){
+        SetFillRule(FR);
+    }else{
         fillRule = "nonzero";
-    else
-        SetFillRule(fillRule);
+    }
 }
 
 void Shapes::Object::SetColor(string s){

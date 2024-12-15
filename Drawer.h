@@ -15,7 +15,6 @@ private:
     Gdiplus::PointF anchor;
     Pen* p;
     SolidBrush* b;
-    Gdiplus::Matrix Ma;
 public:
     Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor);
     
