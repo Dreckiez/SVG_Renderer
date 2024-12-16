@@ -195,7 +195,7 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     //insert spaces between command and numbers
     for (int i = 0; i < d.size() - 1; i++){
-        if (isalpha(d[i])  && (isdigit(d[i + 1]) || d[i + 1] == '-')){
+        if (isalpha(d[i]) && (isdigit(d[i + 1]) || d[i + 1] == '-')){
             d.insert(i + 1, " ");
         }else if ((isdigit(d[i]) || d[i] == '-') && isalpha(d[i + 1])){
             d.insert(i + 1, " ");
@@ -206,42 +206,31 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     removeSpareSpaces(d);
 
+    for (int i = 0; i < d.size() - 1; i++){
+        if (d[i] == 'e'){
+            d.erase(i - 1, 1);
+            d.erase(i, 1);
+        }
+    }
 
     stringstream ss(d);
     
     char c;
-    float x = 0, y = 0;;
+    float num = 0;
     int n;
 
     while (ss >> c){
         if (ss.fail()){
-
             break;
         }
-        
         Shapes::Command cmd;
         cmd.setCmd(c);
-        if (c == 'Z' || c == 'z'){
-            path->add(cmd);
-            continue;
-        }
-        if (c == 'H' || c == 'h'){
-            ss >> x;
-            PointF p(x, 0);
-            cmd.addPoint(p);
-        }else if (c == 'V' || c == 'v'){
-            ss >> y;
-            PointF p(0, y);
-            cmd.addPoint(p);
-        }else{
-            while (ss){
-                if (ss >> x >> y){
-                    PointF p(x, y);
-                    cmd.addPoint(p);
-                }else{
-                    ss.clear(); // Clear the fail state
-                    break;
-                }
+        while (ss){
+            if (ss >> num){
+                cmd.addNum(num);
+            }else{
+                ss.clear(); // Clear the fail state
+                break;
             }
         }
         path->add(cmd);
