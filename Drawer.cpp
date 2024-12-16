@@ -156,6 +156,13 @@ void Drawer::DrawPG(Shapes::Object* obj){
     Reset();
 }
 
+void Drawer::FillPLGradient(Shapes::Polyline* PL, vector <Gdiplus::PointF> pF){
+    setGradientBrush(PL->getColor().GetGradient(), PL->getColor().GetAlpha());
+    g->FillPolygon(gb, pF.data(), static_cast<int> (pF.size()));
+    delete gb;
+}
+
+
 void Drawer::DrawPL(Shapes::Object* obj){
     setDrawer(obj);
     vector <Gdiplus::PointF> pF;
@@ -166,10 +173,18 @@ void Drawer::DrawPL(Shapes::Object* obj){
     }
     
 
-    g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
+    if(PL->getColor().GetGradient() != "") FillPLGradient(PL, pF);
+    else    g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
     g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
     Reset();
 }
+
+void Drawer::FillTextGradient(Shapes::Text* T, Gdiplus::GraphicsPath* text){
+    setGradientBrush(T->getColor().GetGradient(), T->getColor().GetAlpha());
+    g->FillPath(gb, text);
+    delete gb;
+}
+
 
 void Drawer::DrawT(Shapes::Object* obj){
     setDrawer(obj);
@@ -222,7 +237,8 @@ void Drawer::DrawT(Shapes::Object* obj){
     text.CloseFigure();
 
     g->DrawPath(p, &text);
-    g->FillPath(b, &text);
+    if(T->getColor().GetGradient() != "")   FillTextGradient(T, &text);
+    else    g->FillPath(b, &text);
     Reset();
 
     delete ff;
