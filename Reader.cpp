@@ -150,12 +150,12 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
         stringstream ss(tmp);
         float dy_tmp;
         while(ss >> dy_tmp)
-            text->add_dx(dy_tmp);
+            text->add_dy(dy_tmp);
     }
 
     top.SetX(x);
-    top.SetY(y - 1.33 * text->getFontSize());
-    text->setTop(top);
+    top.SetY(y - text->getFontSize());
+    text->addTop(top);
 
 
     const char* FF = E->Attribute("font-family");

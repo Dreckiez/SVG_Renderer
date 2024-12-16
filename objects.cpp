@@ -7,6 +7,8 @@
 #include <wchar.h>
 #include <windows.h>
 #include <gdiplus.h>
+#include <locale>
+#include <codecvt>
 
 #include "objects.h"
 #include "Reader.h"
@@ -509,7 +511,7 @@ void Shapes::Polyline::setPoints(vector<Point>& pts) {
 // text
 Shapes::Text::Text(){
     font_size = 30;
-    text = "";
+    text = L"";
     font_family = "Times New Roman";
     font_style = "";
     text_achor = "";
@@ -532,12 +534,24 @@ vector<float> Shapes::Text::Get_dy(){
     return offset_y;
 }
 
-vector<Shapes::Point> Shapes::Text::getTop(){
-    return Top;
+Shapes::Point Shapes::Text::getTop(int idx){
+    if (idx < Top.size())
+        return Top[idx];
+    return (Shapes::Point){0,0};
 }
 
-void Shapes::Text::setTop(Point& p) {
+void Shapes::Text::addTop(Point& p) {
     Top.push_back(p);
+}
+
+void Shapes::Text::setTop_X(int idx, float x){
+    if (idx < Top.size())
+        Top[idx].SetX(x);
+}
+
+void Shapes::Text::setTop_Y(int idx, float y){
+    if (idx < Top.size())
+        Top[idx].SetY(y);
 }
 
 float Shapes::Text::getFontSize(){
@@ -584,12 +598,17 @@ void Shapes::Text::setTextAnchor(string ta){
 }
 
 
-string Shapes::Text::getText(){
+wstring Shapes::Text::getText(){
     return text;
 }
 
-void Shapes::Text::setText(string& str) {
-    text = str;
+wstring Shapes::Text::StringToWstring(string& str) {
+    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    return converter.from_bytes(str);
+}
+
+void Shapes::Text::setText(string &str){
+    text = StringToWstring(str);
 }
 
 Shapes::Group::Group(){

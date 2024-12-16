@@ -1,5 +1,7 @@
 #include "Drawer.h"
 #include "General.h"
+#include <locale>
+#include <codecvt>
 
 void Drawer::Reset(){
     g->ResetTransform();
@@ -7,6 +9,8 @@ void Drawer::Reset(){
 }
 
 void Drawer::setDrawer(Shapes::Object* obj){
+    obj->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
     b->SetColor(Gdiplus::Color(obj->getColor().GetAlpha()*255, obj->getColor().GetRed(), obj->getColor().GetGreen(), obj->getColor().GetBlue()));
@@ -77,9 +81,6 @@ void Drawer::FillRectGradient(Shapes::Rectangle* R){
 
 void Drawer::DrawR(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Rectangle* R = dynamic_cast<Shapes::Rectangle*>(obj);
 
     if(obj->getColor().GetGradient() != ""){
@@ -108,9 +109,6 @@ void Drawer::FillCircleGradient(Shapes::Circle* C){
 
 void Drawer::DrawC(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Circle* C = dynamic_cast<Shapes::Circle*>(obj);
     
     if(obj->getColor().GetGradient() != "")    FillCircleGradient(C);
@@ -127,9 +125,6 @@ void Drawer::DrawC(Shapes::Object* obj){
 
 void Drawer::DrawE(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Ellipse* E = dynamic_cast<Shapes::Ellipse*>(obj);
 
     if(obj->getColor().GetGradient() != "")    FillEllipseGradient(E);
@@ -146,9 +141,6 @@ void Drawer::FillPGGradient(Shapes::Polygon* PG, Gdiplus::GraphicsPath* path){
 
 void Drawer::DrawPG(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     vector<Gdiplus::PointF> list;
     Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj);
     int n = PG->getPoints().size();
@@ -171,16 +163,12 @@ void Drawer::DrawPG(Shapes::Object* obj){
 
 void Drawer::DrawPL(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     vector <Gdiplus::PointF> pF;
     Shapes::Polyline* PL = dynamic_cast <Shapes::Polyline*> (obj);
     int size = PL->getPoints().size();
     for (int i = 0; i < size; i++){
         pF.push_back({PL->getPoints()[i].GetX() * s, PL->getPoints()[i].GetY() * s});
     }
-
 
     g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
     g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
@@ -189,31 +177,15 @@ void Drawer::DrawPL(Shapes::Object* obj){
 
 void Drawer::DrawT(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Text* T = dynamic_cast<Shapes::Text*>(obj);
 
     // Create a wide string for Font Family 
-    size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wff(size_needed, L'\0');
-    mbstowcs(&wff[0], T->getFontFamily().c_str(), size_needed);
+    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    wstring wff = converter.from_bytes(T->getFontFamily());
 
-    //Create a wide string for Text
-    size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wtext(size_needed, L'\0');
-    mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
-
-    // Font Family
+    // Font Family & Font
     Gdiplus::FontFamily* ff = new Gdiplus::FontFamily(wff.c_str());
+    Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
 
     // Check if it can load the Font Family 
     if (!ff->IsAvailable()){
@@ -221,45 +193,52 @@ void Drawer::DrawT(Shapes::Object* obj){
         ff = new Gdiplus::FontFamily(L"Times New Roman"); // If no then it will load the default
     }
 
+
     // Recalculating the Top-Left Point because of the Text-anchor attribute
     if (!T->getTextAnchor().empty() && T->getTextAnchor() != "start"){
-        Shapes::Point TA(T->getTop()[0]);
-        Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
+        Shapes::Point TA(T->getTop(0));
         Gdiplus::RectF Bounding_Box;
-        g->MeasureString(wtext.c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
-        
+        g->MeasureString(T->getText().c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
 
         if (T->getTextAnchor() == "middle")
             TA.SetX(TA.GetX() - Bounding_Box.Width/2);
         else if (T->getTextAnchor() == "end")
             TA.SetX(TA.GetX() - Bounding_Box.Width);
+        
+        T->setTop_X(0, TA.GetX());
     }
 
+    // Calculate each letter Top-Left corner
     vector<float> dx = T->Get_dx();
     vector<float> dy = T->Get_dy();
 
-    Shapes::Point Prev(T->getTop()[0]);
+    Shapes::Point Prev(T->getTop(0));
     for (int i = 0; i < T->getText().size(); i++){
-        Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
-        Gdiplus::RectF Bounding_Box;
-        size_t it = i;
-        g->MeasureString(&wtext[it], T->getText().size(), &font, (Gdiplus::PointF){Prev.GetX(), Prev.GetY()}, &Bounding_Box);
-        Prev.SetX(Prev.GetX() + Bounding_Box.Width);
-
         if (i == 0){
-            if (!dx.empty())
-                T->getTop()[0].SetX(T->getTop()[0].GetX() + dx[0]);
-            if (!dy.empty())
-                T->getTop()[0].SetY(T->getTop()[0].GetY() + dy[0]);
+            if (!dx.empty()){
+                float tmp = T->getTop(i).GetX() + dx[i];
+                T->setTop_X(i, tmp);
+            }
+            if (!dy.empty()){
+                float tmp = T->getTop(i).GetY() + dy[i];
+                T->setTop_Y(i, tmp);
+            }
         }
         else {
+            Gdiplus::RectF Bounding_Box;
+            g->MeasureString(&T->getText()[i], T->getText().size(), &font, (Gdiplus::PointF){Prev.GetX(), Prev.GetY()}, &Bounding_Box);
+            Prev.SetX(Prev.GetX() + Bounding_Box.Width);
             Shapes::Point p(Prev);
-            if (i < dx.size())
-                p.SetX(p.GetX() + dx[i]);
+            if (i < dx.size()){
+                float tmp = p.GetX() + dx[i];
+                p.SetX(tmp);
+            }
 
-            if (i < dy.size())
-                p.SetY(p.GetY() + dy[i]);
-            T->setTop(p);
+            if (i < dy.size()){
+                float tmp = p.GetY() + dy[i];
+                p.SetY(tmp);
+            }
+            T->addTop(p);
         }
     }
 
@@ -268,11 +247,10 @@ void Drawer::DrawT(Shapes::Object* obj){
     text.StartFigure();
     
     if (dx.empty() && dy.empty())
-        text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop()[0].GetX() * s, T->getTop()[0].GetY() * s}, nullptr);
+        text.AddString(T->getText().c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize() * s, (Gdiplus::PointF){T->getTop(0).GetX() * s, T->getTop(0).GetY() * s}, nullptr);
     else {
         for (int i = 0; i < T->getText().size(); i++){
-            size_t it = i;
-            text.AddString(&wtext[i], 1, ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop()[i].GetX() * s, T->getTop()[i].GetY() * s}, nullptr);
+            text.AddString(&T->getText()[i], 1, ff, T->getFontStyle(), T->getFontSize() * s, (Gdiplus::PointF){T->getTop(i).GetX() * s, T->getTop(i).GetY() * s}, nullptr);
         }
     }
 
@@ -293,9 +271,6 @@ void Drawer::FillPGradient(Shapes::Path* P, Gdiplus::GraphicsPath* path){
 
 void Drawer::DrawP(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
     Gdiplus::GraphicsPath path;
@@ -461,8 +436,8 @@ void Drawer::DrawP(Shapes::Object* obj){
             }else{
                 Control1 = pre;
             }
-            Control2 = pre + PointF(coor[0], coor[1]);
-            cur = pre + PointF(coor[2], coor[3]);
+            Control2 = pre + Gdiplus::PointF(coor[0], coor[1]);
+            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
             
             path.AddBezier(pre, Control1, Control2, cur);
             
@@ -490,8 +465,8 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Quadratic Bezier (absolute)\n";
         }
         else if (c == 'q'){
-            Gdiplus::PointF Quad = pre + PointF(coor[0], coor[1]);
-            cur = pre + PointF(coor[2], coor[3]);
+            Gdiplus::PointF Quad = pre + Gdiplus::PointF(coor[0], coor[1]);
+            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
 
             Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
@@ -529,7 +504,7 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
         else if (c == 't'){
             Gdiplus::PointF Quad = pre + pre - preCurve;
-            cur = pre + PointF(coor[0], coor[1]);
+            cur = pre + Gdiplus::PointF(coor[0], coor[1]);
 
             Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
