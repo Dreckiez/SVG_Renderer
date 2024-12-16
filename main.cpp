@@ -94,6 +94,12 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
             vector <unique_ptr<Shapes::Object>> list;
             Reader reader;
+            LinearVector LV;
+
+            tinyxml2::XMLElement* def = doc.FirstChildElement("svg")->FirstChildElement("defs");
+            if(def){
+                LV.read_gradient(def);
+            }
 
             for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
@@ -145,8 +151,9 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     list.push_back(std::move(ptr));
                 }
             }
-            Drawer drawer(list, &graphics, scale, anchor);
+            Drawer drawer(list, &graphics, scale, anchor, LV);
             drawer.Draw();
+            LV.get_content().clear();
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
             EndPaint(hwnd, &ps);

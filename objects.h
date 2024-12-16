@@ -22,11 +22,13 @@ namespace Shapes{
         int green;
         int blue;
         float opacity;
+        string gradient_name;
     public:
         RGBA();
         int GetRed();
         int GetGreen();
         int GetBlue();
+        string GetGradient();
         float GetAlpha();
         void SetAlpha(float a);
         void SetRGB(string s);
@@ -62,6 +64,7 @@ namespace Shapes{
 
         void SetColor(string s);
         void SetStroke(string s);
+        void SetStyle(string s);
         void SetColorAlpha(float alpha);
         void SetStrokeAlpha(float alpha);
 
