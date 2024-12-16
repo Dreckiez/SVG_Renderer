@@ -9,6 +9,7 @@
 #include <gdiplus.h>
 
 #include "objects.h"
+#include "Reader.h"
 #include "tinyxml2.h"
 using namespace std;
 using namespace Gdiplus;
@@ -35,6 +36,11 @@ Shapes::RGBA::RGBA(){
     green = 0;
     blue = 0;
     opacity = 1;
+    gradient_name = "";
+}
+
+string Shapes::RGBA::GetGradient(){
+    return gradient_name;
 }
 
 int Shapes::RGBA::GetRed(){
@@ -66,8 +72,13 @@ void Shapes::RGBA::SetRGB(string s){
         opacity = 0.0;
     }
     else if (s.find('#') != string::npos){
+        // Gradient format
+        if(s.find("url(#") != string::npos){
+            int start = s.find("#") + 1, end = s.size() - 1;
+            gradient_name = s.substr(start, end - start);
+        }
         // HEX CODE format
-        if (s.size() == 4){
+        else if (s.size() == 4){
             red = stoi(string(2, s[1]), nullptr, 16);
             green = stoi(string(2, s[2]), nullptr, 16);
             blue = stoi(string(2, s[3]), nullptr, 16);
@@ -170,11 +181,31 @@ void Shapes::Object::CopyAttribute(const Object &other){
     Transform = other.Transform;
 }
 
+void Shapes::Object::SetStyle(string s){
+    removeSpareSpaces(s);
+    string type;
+    stringstream ss(s);
+    while(!ss.eof()){
+        getline(ss, type, ':');
+        if(type == "fill"){
+            string C;
+            getline(ss, C, ';');
+            color.SetRGB(C);
+        }
+        else if(type == "stroke"){
+            string S;
+            getline(ss, S, ';');
+            stroke.SetRGB(S);
+        }
+    }
+}
+
 void Shapes::Object::SetAttribute(XMLElement* E){
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
-    
+    const char* Style = E->Attribute("style");
+
     if (T != nullptr) setTransformString(T);
 
     const char* check = E->Attribute("fill-opacity");
@@ -192,11 +223,14 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     if (C != nullptr){
         SetColor(C);
     }
-
+     
     if (S != nullptr){
         SetStroke(S);
     }
     
+    if(Style != nullptr){
+        SetStyle(Style);
+    }
     const char* fillRule = E->Attribute("fill-rule");
     if (fillRule == NULL)
         fillRule = "nonzero";
@@ -564,4 +598,3 @@ Shapes::Group::~Group(){
     }
     Shapes_List.clear();
 }
-
