@@ -38,10 +38,10 @@ public:
     void FillPGGradient(Shapes::Polygon* PG,  Gdiplus::GraphicsPath* path);
 
     void DrawPL(Shapes::Object* obj);
-    // void FillPLGradient(Shapes::Polyline* PL);
+    void FillPLGradient(Shapes::Polyline* PL, vector <Gdiplus::PointF> pF);
 
     void DrawT(Shapes::Object* obj);
-    // void FillTextGradient(Shapes::Rectangle* T);
+    void FillTextGradient(Shapes::Text* T, Gdiplus::GraphicsPath* text);
 
     void DrawP(Shapes::Object* obj);
     void FillPGradient(Shapes::Path* P, Gdiplus::GraphicsPath* path);
