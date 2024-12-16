@@ -140,6 +140,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     list.push_back(std::move(ptr));
                 }
                 else if (name == "path"){
+                    cout << "path";
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
                     reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
                     list.push_back(std::move(ptr));

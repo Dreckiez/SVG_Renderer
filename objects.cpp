@@ -67,7 +67,7 @@ void Shapes::RGBA::SetRGB(string s){
     if (s == ""){
         cout << "nothing\n";
     }
-    if (s == "none"){
+    if (s == "none" || s == "transparent"){
         cout << "none\n";
         opacity = 0.0;
     }
@@ -135,6 +135,12 @@ void Shapes::RGBA::SetRGB(string s){
         stringstream ss(s);
         ss >> red >> green >> blue;
     }
+    if (red > 255)
+        red = 255;
+    if (green > 255)
+        green = 255;
+    if (blue > 255)
+        blue = 255;
 }
 
 Shapes::Point::Point(){
@@ -172,6 +178,8 @@ Shapes::Object::Object(){
     stroke_width = 0;
     stroke.SetAlpha(0);
     Transform = "";
+    stroke_miterlimit = 4;
+    fillRule = "nonzero";
 }
 
 void Shapes::Object::CopyAttribute(const Object &other){
@@ -228,14 +236,15 @@ void Shapes::Object::SetAttribute(XMLElement* E){
         SetStroke(S);
     }
     
-    if(Style != nullptr){
-        SetStyle(Style);
+    const char* FR = E->Attribute("fill-rule");
+    if (FR){
+        SetFillRule(FR);
     }
-    const char* fillRule = E->Attribute("fill-rule");
-    if (fillRule == NULL)
-        fillRule = "nonzero";
-    else
-        SetFillRule(fillRule);
+
+    FR = E->Attribute("stroke-miterlimit");
+    if (FR){
+        setStrokeMiterLimit(E->FloatAttribute("stroke-miterlimit"));
+    }
 }
 
 void Shapes::Object::SetColor(string s){
@@ -269,6 +278,14 @@ Shapes::RGBA Shapes::Object::getColor(){
 
 Shapes::RGBA Shapes::Object::getStroke(){
     return stroke;
+}
+
+void Shapes::Object::setStrokeMiterLimit(int lim){
+    stroke_miterlimit = lim;
+}
+
+int Shapes::Object::getStrokeMiterLimit(){
+    return stroke_miterlimit;
 }
 
 void Shapes::Object::setStrokeWidth(float width) {
