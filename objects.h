@@ -170,17 +170,26 @@ namespace Shapes{
 
     class Text:public Object{
     private:
-        Point top;
+        vector<Point> Top;
         float font_size;
-        string text;
+        wstring text;
         string text_achor;
         string font_family;
         string font_style;
+        vector<float> offset_x;
+        vector<float> offset_y;
     public:
         Text();
         
-    	Point getTop();
-    	void setTop(Point& p);
+        void add_dx(float dx);
+        void add_dy(float dy);
+        vector<float> Get_dx();
+        vector<float> Get_dy();
+
+    	Point getTop(int idx);
+    	void addTop(Point& p);
+        void setTop_X(int idx, float x);
+        void setTop_Y(int idx, float y);
     	
         float getFontSize();
         void setFontSize(float size);
@@ -192,8 +201,9 @@ namespace Shapes{
         string getTextAnchor();
         void setTextAnchor(string ta);
 
-        string getText();
-        void setText(string& str);
+        wstring getText();
+        wstring StringToWstring(string& str);
+        void setText(string &str);
     };
 
     class Group:public Object{
