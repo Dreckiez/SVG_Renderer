@@ -1,8 +1,6 @@
 #include "Drawer.h"
 
 void Drawer::setDrawer(Shapes::Object* obj){
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
     b->SetColor(Gdiplus::Color(obj->getColor().GetAlpha()*255, obj->getColor().GetRed(), obj->getColor().GetGreen(), obj->getColor().GetBlue()));
@@ -17,13 +15,17 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     this->g = g;
     this->s = s;
     this->anchor = anchor;
-    p = new Pen(Color(0,0,0,0), 0);
-    b = new SolidBrush(Color(0,0,0,0));
+    p = new Gdiplus::Pen(Color(0,0,0,0), 0);
+    b = new Gdiplus::SolidBrush(Color(0,0,0,0));
 }
 
 void Drawer::DrawR(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Rectangle* R = dynamic_cast<Shapes::Rectangle*>(obj);
+
+    Gdiplus::Matrix Ma;
+    R->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
 
     g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
     g->DrawRectangle(p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
@@ -31,8 +33,12 @@ void Drawer::DrawR(Shapes::Object* obj){
 }
 
 void Drawer::DrawL(Shapes::Object* obj){
-   setDrawer(obj);
+    setDrawer(obj);
     Shapes::Line* L = dynamic_cast<Shapes::Line*>(obj);
+
+    Gdiplus::Matrix Ma;
+    L->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
 
     g->DrawLine(p, L->getStart().GetX() * s, L->getStart().GetY() * s, L->getEnd().GetX() * s, L->getEnd().GetY() * s);
     g->ResetTransform();
@@ -42,6 +48,10 @@ void Drawer::DrawC(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Circle* C = dynamic_cast<Shapes::Circle*>(obj);
 
+    Gdiplus::Matrix Ma;
+    C->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
+
     g->FillEllipse(b, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
     g->DrawEllipse(p, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
     g->ResetTransform();
@@ -50,6 +60,10 @@ void Drawer::DrawC(Shapes::Object* obj){
 void Drawer::DrawE(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Ellipse* E = dynamic_cast<Shapes::Ellipse*>(obj);
+
+    Gdiplus::Matrix Ma;
+    E->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
 
     g->FillEllipse(b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
     g->DrawEllipse(p, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
@@ -65,7 +79,11 @@ void Drawer::DrawPG(Shapes::Object* obj){
         list.push_back({PG->getPoints()[i].GetX() * s, PG->getPoints()[i].GetY() * s});
     }
 
-    GraphicsPath path;
+    Gdiplus::Matrix Ma;
+    PG->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
+
+    Gdiplus::GraphicsPath path;
     if (obj->getFillRule() == "nonzero"){
         path.SetFillMode(FillModeWinding);
     }else{
@@ -85,7 +103,10 @@ void Drawer::DrawPL(Shapes::Object* obj){
     for (int i = 0; i < size; i++){
         pF.push_back({PL->getPoints()[i].GetX() * s, PL->getPoints()[i].GetY() * s});
     }
-    
+
+    Gdiplus::Matrix Ma;
+    PL->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
 
     g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
     g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
@@ -95,6 +116,10 @@ void Drawer::DrawPL(Shapes::Object* obj){
 void Drawer::DrawT(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Text* T = dynamic_cast<Shapes::Text*>(obj);
+
+    Gdiplus::Matrix Ma;
+    T->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
 
     // Create a wide string for Font Family 
     size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
@@ -125,21 +150,59 @@ void Drawer::DrawT(Shapes::Object* obj){
 
     // Recalculating the Top-Left Point because of the Text-anchor attribute
     if (!T->getTextAnchor().empty() && T->getTextAnchor() != "start"){
-        Shapes::Point TA(T->getTop());
+        Shapes::Point TA(T->getTop()[0]);
         Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
         Gdiplus::RectF Bounding_Box;
         g->MeasureString(wtext.c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
         
+
         if (T->getTextAnchor() == "middle")
             TA.SetX(TA.GetX() - Bounding_Box.Width/2);
         else if (T->getTextAnchor() == "end")
             TA.SetX(TA.GetX() - Bounding_Box.Width);
     }
 
+    vector<float> dx = T->Get_dx();
+    vector<float> dy = T->Get_dy();
+
+    Shapes::Point Prev(T->getTop()[0]);
+    for (int i = 0; i < T->getText().size(); i++){
+        Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
+        Gdiplus::RectF Bounding_Box;
+        size_t it = i;
+        g->MeasureString(&wtext[it], T->getText().size(), &font, (Gdiplus::PointF){Prev.GetX(), Prev.GetY()}, &Bounding_Box);
+        Prev.SetX(Prev.GetX() + Bounding_Box.Width);
+
+        if (i == 0){
+            if (!dx.empty())
+                T->getTop()[0].SetX(T->getTop()[0].GetX() + dx[0]);
+            if (!dy.empty())
+                T->getTop()[0].SetY(T->getTop()[0].GetY() + dy[0]);
+        }
+        else {
+            Shapes::Point p(Prev);
+            if (i < dx.size())
+                p.SetX(p.GetX() + dx[i]);
+
+            if (i < dy.size())
+                p.SetY(p.GetY() + dy[i]);
+            T->setTop(p);
+        }
+    }
+
 
     Gdiplus::GraphicsPath text;
     text.StartFigure();
-    text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
+    
+    if (dx.empty() && dy.empty())
+        text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop()[0].GetX() * s, T->getTop()[0].GetY() * s}, nullptr);
+    else {
+        for (int i = 0; i < T->getText().size(); i++){
+            size_t it = i;
+            text.AddString(&wtext[i], 1, ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop()[i].GetX() * s, T->getTop()[i].GetY() * s}, nullptr);
+        }
+    }
+
     text.CloseFigure();
 
     g->DrawPath(p, &text);
@@ -152,6 +215,10 @@ void Drawer::DrawT(Shapes::Object* obj){
 void Drawer::DrawP(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
+
+    Gdiplus::Matrix Ma;
+    P->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
 
     Gdiplus::GraphicsPath path;
     if (obj->getFillRule() == "nonzero"){
@@ -421,6 +488,11 @@ void Drawer::DrawP(Shapes::Object* obj){
 void Drawer::DrawG(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Group* G = dynamic_cast<Shapes::Group*>(obj);
+
+    Gdiplus::Matrix Ma;
+    G->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
+
     for (int i = 0; i < G->GetSize(); i++){
         if(dynamic_cast <Shapes::Rectangle*> (G->GetShape(i))){
             DrawR(G->GetShape(i));

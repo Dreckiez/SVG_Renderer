@@ -164,16 +164,23 @@ namespace Shapes{
 
     class Text:public Object{
     private:
-        Point top;
+        vector<Point> Top;
         float font_size;
         string text;
         string text_achor;
         string font_family;
         string font_style;
+        vector<float> offset_x;
+        vector<float> offset_y;
     public:
         Text();
         
-    	Point getTop();
+        void add_dx(float dx);
+        void add_dy(float dy);
+        vector<float> Get_dx();
+        vector<float> Get_dy();
+
+    	vector<Point> getTop();
     	void setTop(Point& p);
     	
         float getFontSize();

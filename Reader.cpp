@@ -85,7 +85,6 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
 
     float x = 0;
     float y = 0;
-    string tmp;
     while (ss >> x >> y) {
         Shapes::Point p;
         p.SetX(x);
@@ -108,7 +107,6 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
 
     float x = 0;
     float y = 0;
-    string tmp;
     while (ss >> x >> y) {
         Shapes::Point p;
         p.SetX(x);
@@ -131,18 +129,32 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 
     float x = E->FloatAttribute("x");
     float y = (E->FloatAttribute("y"));
-    float dx = 0, dy = 0;
-
-    if (E->Attribute("dx")){
-        dx = E->FloatAttribute("dx");
+    
+    const char* dx = E->Attribute("dx");
+    const char* dy = E->Attribute("dy");
+    
+    if (dx){
+        string tmp = dx;
+        addSpaces(tmp);
+        removeSpareSpaces(tmp);
+        stringstream ss(tmp);
+        float dx_tmp;
+        while(ss >> dx_tmp)
+            text->add_dx(dx_tmp);
     }
 
-    if (E->Attribute("dy")){
-        dy = E->FloatAttribute("dy");
+    if (dy){
+        string tmp = dy;
+        addSpaces(tmp);
+        removeSpareSpaces(tmp);
+        stringstream ss(tmp);
+        float dy_tmp;
+        while(ss >> dy_tmp)
+            text->add_dx(dy_tmp);
     }
 
-    top.SetX(x + dx);
-    top.SetY(y + dy - 1.33 * text->getFontSize());
+    top.SetX(x);
+    top.SetY(y - 1.33 * text->getFontSize());
     text->setTop(top);
 
 
@@ -173,7 +185,6 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
 
     text->SetAttribute(E);
 
-    // text->CheckAtt();
 }
 
 void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
@@ -195,7 +206,6 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
 
     removeSpareSpaces(d);
 
-    // cout << d << endl;
 
     stringstream ss(d);
     
@@ -230,19 +240,12 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
                     cmd.addPoint(p);
                 }else{
                     ss.clear(); // Clear the fail state
-                    //ss.ignore(numeric_limits<streamsize>::max(), ' ');
                     break;
                 }
             }
         }
         path->add(cmd);
-        // cout << ss.str() << endl;
     }
-
-    for (int i = 0; i < path->getCmd().size(); i++){
-        cout << path->getCmdAt(i).toString() << endl;
-    }
-    
 
     path->SetAttribute(E);
 }

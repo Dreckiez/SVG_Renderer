@@ -457,7 +457,6 @@ void Shapes::Polyline::setPoints(vector<Point>& pts) {
 
 // text
 Shapes::Text::Text(){
-    top.SetPoint(0,0);
     font_size = 30;
     text = "";
     font_family = "Times New Roman";
@@ -466,12 +465,28 @@ Shapes::Text::Text(){
     cout << "Text constructed\n";
 }
 
-Shapes::Point Shapes::Text::getTop(){
-    return top;
+void Shapes::Text::add_dx(float dx){
+    offset_x.push_back(dx);
+}
+
+void Shapes::Text::add_dy(float dy){
+    offset_y.push_back(dy);
+}
+
+vector<float> Shapes::Text::Get_dx(){
+    return offset_x;
+}
+
+vector<float> Shapes::Text::Get_dy(){
+    return offset_y;
+}
+
+vector<Shapes::Point> Shapes::Text::getTop(){
+    return Top;
 }
 
 void Shapes::Text::setTop(Point& p) {
-    top = p;
+    Top.push_back(p);
 }
 
 float Shapes::Text::getFontSize(){
