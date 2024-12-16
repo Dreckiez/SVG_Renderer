@@ -549,23 +549,11 @@ void Drawer::DrawP(Shapes::Object* obj){
             
             if (c == 'A'){
                 for (int i = 0; i < pSize; i += 7){
-                    cout << "Arc from (" << pre.X << ", " << pre.Y << ") to ("
-          << coor[i + 5] << ", " << coor[i + 6] << ") with rx=" 
-          << coor[i] << ", ry=" << coor[i + 1] 
-          << ", rotation=" << coor[i + 2]
-          << ", largeArcFlag=" << coor[i + 3] 
-          << ", sweepFlag=" << coor[i + 4] << std::endl;
                     AddSvgArcToPath(path, pre.X, pre.Y, coor[i + 5], coor[i + 6], coor[i], coor[i + 1], coor[i + 2], int(coor[i + 3]), int(coor[i  +4]));
                     pre = {coor[i + 5], coor[i + 6]};
                 }
             }else{
                 for (int i = 0; i < pSize; i += 7){
-                    cout << "Arc from (" << pre.X << ", " << pre.Y << ") to ("
-          << coor[i + 5] + pre.X << ", " << coor[i + 6] + pre.Y << ") with rx=" 
-          << coor[i] << ", ry=" << coor[i + 1] 
-          << ", rotation=" << coor[i + 2]
-          << ", largeArcFlag=" << coor[i + 3] 
-          << ", sweepFlag=" << coor[i + 4] << std::endl;
                     AddSvgArcToPath(path, pre.X, pre.Y, coor[i + 5] + pre.X, coor[i + 6] + pre.Y, coor[i], coor[i + 1], coor[i + 2], int(coor[i + 3]), int(coor[i  +4]));
                     pre = {coor[i + 5] + pre.X, coor[i + 6] + pre.Y};
                 }
