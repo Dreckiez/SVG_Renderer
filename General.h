@@ -15,15 +15,6 @@ double DegreesToRadians(double degrees);
 
 float AngleBetweenVectors(float ux, float uy, float vx, float vy);
 
-// Function to add an SVG arc to a GraphicsPath
-// void AddSvgArcToPath(GraphicsPath &path, 
-//                      float x1, float y1, 
-//                      float x2, float y2, 
-//                      float rx, float ry, 
-//                      float xAxisRotation,
-//                      bool largeArcFlag, 
-//                      bool sweepFlag);
-
 void AddSvgArcToPath(Gdiplus::GraphicsPath& path, 
                      float x0, float y0, 
                      float x1, float y1, 
