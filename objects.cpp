@@ -78,9 +78,10 @@ void Shapes::RGBA::SetRGB(string s){
         if(s.find("url(#") != string::npos){
             int start = s.find("#") + 1, end = s.size() - 1;
             gradient_name = s.substr(start, end - start);
+            return;
         }
         // HEX CODE format
-        else if (s.size() == 4){
+        if (s.size() == 4){
             red = stoi(string(2, s[1]), nullptr, 16);
             green = stoi(string(2, s[2]), nullptr, 16);
             blue = stoi(string(2, s[3]), nullptr, 16);
@@ -238,6 +239,10 @@ void Shapes::Object::SetAttribute(XMLElement* E){
         SetStroke(S);
     }
     
+    if(Style != nullptr){
+        SetStyle(Style);
+    }
+
     const char* FR = E->Attribute("fill-rule");
     if (FR){
         SetFillRule(FR);

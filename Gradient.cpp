@@ -85,8 +85,6 @@ void LinearVector::read_gradient(tinyxml2::XMLElement* defs){
              stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
             float offset = 0.0f;
             stopElem->QueryFloatAttribute("offset", &offset);
-            LG.get_stops()[idx] = offset;
-
             string colorHex = stopElem->Attribute("stop-color");
             float stopOpacity = 1.0f;
             stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
@@ -94,13 +92,24 @@ void LinearVector::read_gradient(tinyxml2::XMLElement* defs){
             color.SetRGB(colorHex);
             color.SetAlpha(stopOpacity);
             Gdiplus::Color c(stopOpacity*255, color.GetRed(), color.GetGreen(), color.GetBlue());
+            if(idx == 0 && offset != 0){
+                LG.get_stops()[idx] = 0;
+                LG.get_colors()[idx] = c;
+                LG.set_amount(LG.get_amount() + 1);
+                idx++;
+            }
+            LG.get_stops()[idx] = offset;
             LG.get_colors()[idx] = c;
             idx++;
             LG.set_amount(LG.get_amount() + 1);
         }
         // Add the gradient to the vector
+        if(LG.get_stops()[idx-1] != 1){
+            LG.get_stops()[idx] = 1;
+            LG.get_colors()[idx] = LG.get_colors()[idx-1];
+            LG.set_amount(LG.get_amount() + 1);
+        }
         content.push_back(LG);
     }
-
     return;
 }
