@@ -198,10 +198,14 @@ void Shapes::Object::SetAttribute(XMLElement* E){
         setStrokeWidth(E->FloatAttribute("stroke-width"));
 
     if (C != nullptr){
-        SetColor(C);
+        string temp = C;
+        toLowerCase(temp);
+        SetColor(temp);
     }
 
     if (S != nullptr){
+        string temp = S;
+        toLowerCase(temp);
         SetStroke(S);
     }
     

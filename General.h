@@ -6,7 +6,15 @@
 #include <propidl.h>
 #include <gdiplus.h>
 #include <algorithm>
+#include <string>
+#include <iostream>
+
+using namespace std;
 using namespace Gdiplus;
+
+void addSpaces(string &s);
+void removeSpareSpaces(string &s);
+void toLowerCase(string &s);
 
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians);
