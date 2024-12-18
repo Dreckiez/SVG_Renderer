@@ -67,10 +67,8 @@ void Shapes::RGBA::SetAlpha(float a){
 
 void Shapes::RGBA::SetRGB(string s){
     if (s == ""){
-        cout << "nothing\n";
     }
     if (s == "none" || s == "transparent"){
-        cout << "none\n";
         opacity = 0.0;
     }
     else if (s.find('#') != string::npos){
@@ -354,22 +352,22 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             stringstream scale_stream(temp);
             if (temp.find(',') != std::string::npos){
                 getline(scale_stream, para, ',');
-                scale_x = atof(para.c_str());
+                scale_x = stof(para);
                 getline(scale_stream, para, ')');
-                scale_y = atof(para.c_str());
+                scale_y = stof(para);
                 getline(ss, para, ' ');
             }
             else{
                 getline(scale_stream, para, ')');
-                scale_x = atof(para.c_str());
-                scale_y = atof(para.c_str());
+                scale_x = stof(para);
+                scale_y = stof(para);
                 getline(ss, para, ' ');
             }
             M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
             getline(ss, para, ')');
-            rotate = atof(para.c_str());
+            rotate = stof(para);
             float radian = rotate * 3.1415926 / (float)180;
             getline(ss, para, ' ');
             M.Rotate(rotate);
