@@ -1,6 +1,7 @@
 #include "Drawer.h"
 #include "General.h"
 #include <locale>
+#include <iostream>
 #include <codecvt>
 
 void Drawer::Reset(){
@@ -9,7 +10,41 @@ void Drawer::Reset(){
 }
 
 void Drawer::setDrawer(Shapes::Object* obj){
+    Gdiplus::Matrix MVB;
+    float scale_x = 1;
+    float scale_y = 1;
+    float scale_factor;
+
+    if (VB.GetWidth() != 1){
+        if (VP.GetWidth() != 300){
+                scale_x = VP.GetWidth()/VB.GetWidth();
+        }
+        else {
+            Gdiplus::RectF bounds;
+            g->GetClipBounds(&bounds);
+            scale_x = bounds.Width/VB.GetWidth();
+        }
+    }
+    
+    if (VB.GetHeight() != 1){
+        if (VP.GetHeight() != 150){
+                scale_y = VP.GetHeight()/VB.GetHeight();
+        }
+        else {
+            Gdiplus::RectF bounds;
+            g->GetClipBounds(&bounds);
+            scale_y = bounds.Height/VB.GetHeight();
+        }
+    }
+    
+    scale_factor = min (scale_x, scale_y);
+    MVB.Scale(scale_factor, scale_factor);
+    MVB.Translate(VB.GetTop().GetX(), VB.GetTop().GetY());
+
     obj->setTransform(Ma, s, anchor);
+
+    Ma.Multiply(&MVB, Gdiplus::MatrixOrderPrepend);
+
     g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
@@ -18,7 +53,7 @@ void Drawer::setDrawer(Shapes::Object* obj){
     p->SetMiterLimit(obj->getStrokeMiterLimit());
 }
 
-Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear){
+Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear, ViewBox vb, ViewPort vp){
     int n = list.size();
     for(int i = 0; i < n; i++){
         shapeList.push_back(std::move(list[i]));
@@ -30,6 +65,8 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     p = new Gdiplus::Pen(Gdiplus::Color(0,0,0,0), 0);
     b = new Gdiplus::SolidBrush(Gdiplus::Color(0,0,0,0));
     gradientList = linear;
+    VB = vb;
+    VP = vp;
 }
 
 void Drawer::setGradientBrush(string r, float alpha){

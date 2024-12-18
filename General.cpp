@@ -1,4 +1,6 @@
 #include "General.h"
+#include <iostream>
+using namespace std;
 
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians) {
@@ -122,4 +124,36 @@ void AddSvgArcToPath(Gdiplus::GraphicsPath& path,
 
     // Apply rotation and add the arc
     path.AddArc(arcRect, startAngle, sweepAngle);
+}
+
+float ConvertUnit(string s){
+    if (s.empty()){
+        cout << "Empty\n";
+        return 0;
+    }
+
+    if (s.find("pt") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 1.33*stof(s);
+    }
+    else if (s.find("pc") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 16*stof(s);
+    }
+    else if (s.find("in") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 96*stof(s);
+    }
+    else if (s.find("cm") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 37.8*stof(s);
+    }
+    else if (s.find("mm") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 3.78*stof(s);
+    }
+    else if (s.find("px") != string::npos){
+        s.erase(s.size() - 2, 2);
+    }
+    return stof(s);
 }

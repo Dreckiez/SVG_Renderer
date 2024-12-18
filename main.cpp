@@ -8,6 +8,7 @@
 #include "tinyxml2.h"
 #include "Drawer.h"
 #include "Reader.h"
+#include "ViewBox.h"
 
 using namespace Gdiplus;
 using namespace std;
@@ -76,8 +77,8 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             doc.LoadFile(filepath.c_str());
             PAINTSTRUCT ps;
             HDC hdc = BeginPaint(hwnd, &ps);
-            Graphics graphics(hdc);
-            graphics.Clear(Color(255, 255, 255, 255));
+            Gdiplus::Graphics graphics(hdc);
+            graphics.Clear(Gdiplus::Color(255, 255, 255, 255));
             graphics.SetSmoothingMode(SmoothingModeAntiAlias);
             PointF anchor;
             if (scale_mouse){
@@ -100,6 +101,25 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             if(def){
                 LV.read_gradient(def);
             }
+
+            ViewBox VB;
+            if (doc.FirstChildElement("svg")->Attribute("viewBox")){
+                VB.ReadViewBox(doc.FirstChildElement("svg"));
+            }
+
+            ViewPort VP;
+            if (doc.FirstChildElement("svg")->Attribute("width") || doc.FirstChildElement("svg")->Attribute("height")){
+                VP.ReadViewPort(doc.FirstChildElement("svg"));
+                Gdiplus::RectF VP_area(0, 0, VP.GetWidth(), VP.GetHeight());
+                graphics.SetClip(VP_area);
+            }
+            else {
+                RECT screen;
+                GetClientRect(hwnd, &screen);
+                Gdiplus::RectF VP_area(0, 0, screen.right, screen.bottom);
+                graphics.SetClip(VP_area);
+            }
+
 
             for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
@@ -151,7 +171,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     list.push_back(std::move(ptr));
                 }
             }
-            Drawer drawer(list, &graphics, scale, anchor, LV);
+            Drawer drawer(list, &graphics, scale, anchor, LV, VB, VP);
             drawer.Draw();
             LV.get_content().clear();
             //graphics.SetSmoothingMode(SmoothingModeNone);

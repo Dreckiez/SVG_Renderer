@@ -1,3 +1,6 @@
+#ifndef GRADIENT_H
+#define GRADIENT_H
+
 #include "objects.h"
 
 class LinearGradient{
@@ -29,3 +32,5 @@ public:
     vector <LinearGradient>& get_content();
     void read_gradient(tinyxml2::XMLElement* defs);
 };
+
+#endif

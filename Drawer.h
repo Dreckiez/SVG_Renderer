@@ -5,6 +5,7 @@
 #include "Path.h"
 #include "Gradient.h"
 #include "gdiplus.h"
+#include "ViewBox.h"
 
 using namespace Gdiplus;
 
@@ -14,13 +15,15 @@ private:
     Gdiplus::Graphics* g;
     float s;
     Gdiplus::PointF anchor;
-    Pen* p;
+    Gdiplus::Pen* p;
     SolidBrush* b;
     LinearGradientBrush* gb;
     Gdiplus::Matrix Ma;
     LinearVector gradientList;
+    ViewBox VB;
+    ViewPort VP;
 public:
-    Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear);
+    Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear, ViewBox vb, ViewPort vp);
     void Reset();
     void setDrawer(Shapes::Object* obj);
     void DrawR(Shapes::Object* obj);
