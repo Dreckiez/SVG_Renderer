@@ -43,7 +43,7 @@ void Drawer::setDrawer(Shapes::Object* obj){
 
     obj->setTransform(Ma, s, anchor);
 
-    Ma.Multiply(&MVB, Gdiplus::MatrixOrderPrepend);
+    Ma.Multiply(&MVB, Gdiplus::MatrixOrderAppend);
 
     g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
