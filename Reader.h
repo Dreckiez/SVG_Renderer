@@ -6,6 +6,7 @@
 
 #include "objects.h"
 #include "Path.h"
+#include "General.h"
 
 
 void addSpaces(string &s);
