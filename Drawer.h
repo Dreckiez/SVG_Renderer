@@ -18,9 +18,9 @@ private:
     SolidBrush* b;
     LinearGradientBrush* gb;
     Gdiplus::Matrix Ma;
-    LinearVector gradientList;
+    GradientVector gradientList;
 public:
-    Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear);
+    Drawer(vector<unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, GradientVector linear);
     void Reset();
     void setDrawer(Shapes::Object* obj);
     void DrawR(Shapes::Object* obj);
