@@ -1,20 +1,18 @@
 #include "Gradient.h"
 
-LinearGradient::LinearGradient(){
+Gradient::Gradient(){
     id = "";
     start.SetPoint(0,0);
-    end.SetPoint(0,0);
     amount = 0;
 }
 
-LinearGradient::LinearGradient(string I, Shapes::Point S, Shapes::Point E){
+Gradient::Gradient(string I, Shapes::Point S){
     id = I;
     start.SetPoint(S.GetX(), S.GetY());
-    end.SetPoint(E.GetX(), E.GetY());
     amount = 0;
 }
 
-Shapes::Point& LinearGradient::get_start(){
+Shapes::Point& Gradient::get_start(){
     return start;
 }
 
@@ -22,11 +20,11 @@ Shapes::Point& LinearGradient::get_end(){
     return end;
 }
 
-std::string& LinearGradient::get_id(){
+std::string& Gradient::get_id(){
     return id;
 }
 
-void LinearGradient::set_start(Shapes::Point p){
+void Gradient::set_start(Shapes::Point p){
     start.SetPoint(p.GetX(), p.GetY());
 }
 
@@ -34,82 +32,159 @@ void LinearGradient::set_end(Shapes::Point p){
     end.SetPoint(p.GetX(), p.GetY());
 }
 
-float* LinearGradient::get_stops(){
+float* Gradient::get_stops(){
     return stops;
 }
 
-Gdiplus::Color* LinearGradient::get_colors(){
+Gdiplus::Color* Gradient::get_colors(){
     return colors;
 }
 
-vector <LinearGradient>& LinearVector::get_content(){
+vector <Gradient*>& GradientVector::get_content(){
     return content;
 }
 
-int LinearGradient::get_amount(){
+int Gradient::get_amount(){
     return amount;
 }
 
-void LinearGradient::set_amount(int s){
+void Gradient::set_amount(int s){
     amount = s;
 }
 
-void LinearGradient::set_id(std::string str){
+void Gradient::set_id(std::string str){
     id = str;
 }
 
-void LinearVector::read_gradient(tinyxml2::XMLElement* defs){
+void LinearGradient::read(XMLElement* gradientElem){
     int idx;
-    for (XMLElement* gradientElem = defs->FirstChildElement("linearGradient");
-         gradientElem; gradientElem = gradientElem->NextSiblingElement("linearGradient")) {
-        
-        LinearGradient LG;
-        LG.set_id(gradientElem->Attribute("id"));
-        // Set start and end pos;
-        if(gradientElem->Attribute("x1")){
-            float x1 = atof(gradientElem->Attribute("x1")), y1 = atof(gradientElem->Attribute("y1"));
-            float x2 = atof(gradientElem->Attribute("x2")), y2 = atof(gradientElem->Attribute("y2"));
-            Shapes::Point s(x1,y1), e(x2,y2);
-            LG.set_start(s);
-            LG.set_end(e);
-        }
-        else{
-            int screenWidth = GetSystemMetrics(SM_CXSCREEN);
-            Shapes::Point s(0,0), e(screenWidth,0);
-            LG.set_start(s);
-            LG.set_end(e);
-        }
-        idx = 0;
-        // Read all <stop> elements
-        for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
-             stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
-            float offset = 0.0f;
-            stopElem->QueryFloatAttribute("offset", &offset);
-            string colorHex = stopElem->Attribute("stop-color");
-            float stopOpacity = 1.0f;
-            stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
-            Shapes::RGBA color;
-            color.SetRGB(colorHex);
-            color.SetAlpha(stopOpacity);
-            Gdiplus::Color c(stopOpacity*255, color.GetRed(), color.GetGreen(), color.GetBlue());
-            if(idx == 0 && offset != 0){
-                LG.get_stops()[idx] = 0;
-                LG.get_colors()[idx] = c;
-                LG.set_amount(LG.get_amount() + 1);
-                idx++;
-            }
-            LG.get_stops()[idx] = offset;
-            LG.get_colors()[idx] = c;
+    set_id(gradientElem->Attribute("id"));
+    // Set start and end pos;
+    if(gradientElem->Attribute("x1")){
+        float x1 = atof(gradientElem->Attribute("x1")), y1 = atof(gradientElem->Attribute("y1"));
+        float x2 = atof(gradientElem->Attribute("x2")), y2 = atof(gradientElem->Attribute("y2"));
+        Shapes::Point s(x1,y1), e(x2,y2);
+        set_start(s);
+        set_end(e);
+    }
+    else{
+        int screenWidth = GetSystemMetrics(SM_CXSCREEN);
+        Shapes::Point s(0,0), e(screenWidth,0);
+        set_start(s);
+        set_end(e);
+    }
+    idx = 0;
+    // Read all <stop> elements
+    for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
+            stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
+        float offset = 0.0f;
+        stopElem->QueryFloatAttribute("offset", &offset);
+        string colorHex = stopElem->Attribute("stop-color");
+        float stopOpacity = 1.0f;
+        stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
+        Shapes::RGBA color;
+        color.SetRGB(colorHex);
+        color.SetAlpha(stopOpacity);
+        Gdiplus::Color c(stopOpacity*255, color.GetRed(), color.GetGreen(), color.GetBlue());
+        if(idx == 0 && offset != 0){
+            get_stops()[idx] = 0;
+            get_colors()[idx] = c;
+            set_amount(get_amount() + 1);
             idx++;
-            LG.set_amount(LG.get_amount() + 1);
         }
+        get_stops()[idx] = offset;
+        get_colors()[idx] = c;
+        idx++;
+        set_amount(get_amount() + 1);
+    }
+    if(get_stops()[idx-1] != 1){
+        get_stops()[idx] = 1;
+        get_colors()[idx] = get_colors()[idx-1];
+        set_amount(get_amount() + 1);
+    }
+}
+
+float RadialGradient::get_radius(){
+    return radius;
+}
+
+void RadialGradient::read(XMLElement* gradientElem){
+    int idx;
+    set_id(gradientElem->Attribute("id"));
+    // Set start and end pos;
+    float x1 = 0, y1 = 0;
+    if(gradientElem->Attribute("cx")){
+        x1 = atof(gradientElem->Attribute("cx"));
+    }
+    if(gradientElem->Attribute("cy")){
+        y1 = atof(gradientElem->Attribute("cy"));
+    }
+    if(gradientElem->Attribute("r")){
+        radius = atof(gradientElem->Attribute("r"));
+    }
+    else{
+        radius = 0;
+    }
+    Shapes::Point s(x1,y1);
+    set_start(s);
+    idx = 0;
+    // Read all <stop> elements
+    for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
+            stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
+        float offset = 0.0f;
+        stopElem->QueryFloatAttribute("offset", &offset);
+        string colorHex = stopElem->Attribute("stop-color");
+        float stopOpacity = 1.0f;
+        stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
+        Shapes::RGBA color;
+        color.SetRGB(colorHex);
+        color.SetAlpha(stopOpacity);
+        Gdiplus::Color c(stopOpacity*255, color.GetRed(), color.GetGreen(), color.GetBlue());
+        if(idx == 0 && offset != 0){
+            get_stops()[idx] = 0;
+            get_colors()[idx] = c;
+            set_amount(get_amount() + 1);
+            idx++;
+        }
+        get_stops()[idx] = offset;
+        get_colors()[idx] = c;
+        idx++;
+        set_amount(get_amount() + 1);
+    }
+    if(get_stops()[idx-1] != 1){
+        get_stops()[idx] = 1;
+        get_colors()[idx] = get_colors()[idx-1];
+        set_amount(get_amount() + 1);
+    }
+}
+
+void GradientVector::read_gradient(tinyxml2::XMLElement* defs){
+    int idx;
+    if(!defs->FirstChildElement("linearGradient") && !defs->FirstChildElement("radialGradient")){
+        return;
+    }
+    XMLElement* gradientElem = defs->FirstChildElement();
+    while (gradientElem) {
+        Gradient* LG = nullptr;
+        
+        if(string(gradientElem->Name()) == "linearGradient"){
+            LG = new LinearGradient;
+            LG->read(gradientElem);
+        }
+        else if(string(gradientElem->Name()) == "radialGradient"){
+            LG = new RadialGradient;
+            LG->read(gradientElem);
+        }
+        gradientElem = gradientElem->NextSiblingElement();
         // Add the gradient to the vector
-        if(LG.get_stops()[idx-1] != 1){
-            LG.get_stops()[idx] = 1;
-            LG.get_colors()[idx] = LG.get_colors()[idx-1];
-            LG.set_amount(LG.get_amount() + 1);
-        }
         content.push_back(LG);
     }
     return;
+}
+
+void GradientVector::clear(){
+    for(int i = 0; i < content.size(); i++){
+        delete content[i];
+    }
+    content.clear();
 }

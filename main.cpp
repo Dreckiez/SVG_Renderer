@@ -95,7 +95,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
             vector <unique_ptr<Shapes::Object>> list;
             Reader reader;
-            LinearVector LV;
+            GradientVector LV;
 
             tinyxml2::XMLElement* def = doc.FirstChildElement("svg")->FirstChildElement("defs");
             if(def){
@@ -173,7 +173,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             }
             Drawer drawer(list, &graphics, scale, anchor, LV, VB, VP);
             drawer.Draw();
-            LV.get_content().clear();
+            LV.clear();
             //graphics.SetSmoothingMode(SmoothingModeNone);
 
             EndPaint(hwnd, &ps);
