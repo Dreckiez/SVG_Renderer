@@ -1,7 +1,16 @@
 #include "Drawer.h"
 #include "General.h"
+#include <locale>
+#include <codecvt>
+
+void Drawer::Reset(){
+    g->ResetTransform();
+    Ma.Reset();
+}
 
 void Drawer::setDrawer(Shapes::Object* obj){
+    obj->setTransform(Ma, s, anchor);
+    g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
     b->SetColor(Gdiplus::Color(obj->getColor().GetAlpha()*255, obj->getColor().GetRed(), obj->getColor().GetGreen(), obj->getColor().GetBlue()));
@@ -9,7 +18,7 @@ void Drawer::setDrawer(Shapes::Object* obj){
     p->SetMiterLimit(obj->getStrokeMiterLimit());
 }
 
-Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor){
+Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear){
     int n = list.size();
     for(int i = 0; i < n; i++){
         shapeList.push_back(std::move(list[i]));
@@ -18,62 +27,120 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     this->g = g;
     this->s = s;
     this->anchor = anchor;
-    p = new Pen(Color(0,0,0,0), 0);
-    b = new SolidBrush(Color(0,0,0,0));
+    p = new Gdiplus::Pen(Gdiplus::Color(0,0,0,0), 0);
+    b = new Gdiplus::SolidBrush(Gdiplus::Color(0,0,0,0));
+    gradientList = linear;
 }
+
+void Drawer::setGradientBrush(string r, float alpha){
+    int default_opacity = 100;
+    for(int i = 0; i < gradientList.get_content().size(); i++){
+        if(r == gradientList.get_content()[i].get_id()){
+            Gdiplus::Color color_array[50];
+            float stop_array[50];
+            LinearGradient LG = gradientList.get_content()[i];
+            int stops_amount = LG.get_amount();
+            Gdiplus::PointF p1(LG.get_start().GetX() * s, LG.get_start().GetY() * s), p2(LG.get_end().GetX() * s, LG.get_end().GetY() * s);
+            gb = new Gdiplus::LinearGradientBrush(p1, p2, LG.get_colors()[0], LG.get_colors()[LG.get_amount()]);
+            int idx = 0;
+            for(int i = 0; i < stops_amount; i++){
+                float opacity = alpha * ((float)LG.get_colors()[i].GetAlpha());
+                if(opacity < 50 && idx != 0){
+                    Gdiplus::Color backup(alpha * (LG.get_colors()[idx].GetAlpha() + LG.get_colors()[idx-1].GetAlpha())/2,  LG.get_colors()[idx-1].GetRed()*0.5 + LG.get_colors()[idx].GetRed()*0.5, LG.get_colors()[idx-1].GetGreen()*0.5 + LG.get_colors()[idx].GetGreen()*0.5, LG.get_colors()[idx-1].GetBlue()*0.5 + LG.get_colors()[idx].GetBlue()*0.5);
+                    color_array[i] = backup;
+                    stop_array[i] = LG.get_stops()[idx] - ((LG.get_stops()[idx] - LG.get_stops()[idx-1]) / 2);
+                    i++;
+                    stops_amount++;
+                }
+
+                Gdiplus::Color c(opacity, LG.get_colors()[idx].GetRed(), LG.get_colors()[idx].GetGreen(), LG.get_colors()[idx].GetBlue());
+                color_array[i] = c;
+                stop_array[i] = LG.get_stops()[idx];
+                
+                if(opacity  < 50 && idx < LG.get_amount() - 1){
+                    i++;
+                    Gdiplus::Color backup(alpha * (LG.get_colors()[idx].GetAlpha() + LG.get_colors()[idx+1].GetAlpha())/2,  LG.get_colors()[idx+1].GetRed()*0.5 + LG.get_colors()[idx].GetRed()*0.5, LG.get_colors()[idx+1].GetGreen()*0.5 + LG.get_colors()[idx].GetGreen()*0.5, LG.get_colors()[idx+1].GetBlue()*0.5 + LG.get_colors()[idx].GetBlue()*0.5);
+                    color_array[i] = backup;
+                    stop_array[i] = LG.get_stops()[idx] + ((LG.get_stops()[idx+1] - LG.get_stops()[idx]) / 2);
+                    stops_amount++;
+                }
+                idx++;
+            }
+            gb->SetInterpolationColors(color_array, stop_array, stops_amount);
+            break;
+        }
+    }
+}
+
+void Drawer::FillRectGradient(Shapes::Rectangle* R){
+    setGradientBrush(R->getColor().GetGradient(), R->getColor().GetAlpha());
+    g->FillRectangle(gb, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+    delete gb;
+}
+
 
 void Drawer::DrawR(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Rectangle* R = dynamic_cast<Shapes::Rectangle*>(obj);
 
-    g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+    if(obj->getColor().GetGradient() != ""){
+        FillRectGradient(R);
+    }
+    else{
+        g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+    }
     g->DrawRectangle(p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::DrawL(Shapes::Object* obj){
-   setDrawer(obj);
-   Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
+    setDrawer(obj);
     Shapes::Line* L = dynamic_cast<Shapes::Line*>(obj);
 
     g->DrawLine(p, L->getStart().GetX() * s, L->getStart().GetY() * s, L->getEnd().GetX() * s, L->getEnd().GetY() * s);
-    g->ResetTransform();
+    Reset();
+}
+
+void Drawer::FillCircleGradient(Shapes::Circle* C){
+    setGradientBrush(C->getColor().GetGradient(), C->getColor().GetAlpha());
+    g->FillEllipse(gb, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
+    delete gb;
 }
 
 void Drawer::DrawC(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Circle* C = dynamic_cast<Shapes::Circle*>(obj);
-
-    g->FillEllipse(b, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
+    
+    if(obj->getColor().GetGradient() != "")    FillCircleGradient(C);
+    else    g->FillEllipse(b, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
     g->DrawEllipse(p, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
-    g->ResetTransform();
+    Reset();
 }
+
+ void Drawer::FillEllipseGradient(Shapes::Ellipse* E){
+    setGradientBrush(E->getColor().GetGradient(), E->getColor().GetAlpha());
+    g->FillEllipse(gb, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
+    delete gb;
+ }
 
 void Drawer::DrawE(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Ellipse* E = dynamic_cast<Shapes::Ellipse*>(obj);
 
-    g->FillEllipse(b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
+    if(obj->getColor().GetGradient() != "")    FillEllipseGradient(E);
+    else   g->FillEllipse(b, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
     g->DrawEllipse(p, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
-    g->ResetTransform();
+    Reset();
+}
+
+void Drawer::FillPGGradient(Shapes::Polygon* PG, Gdiplus::GraphicsPath* path){
+    setGradientBrush(PG->getColor().GetGradient(), PG->getColor().GetAlpha());
+    g->FillPath(gb, path);
+    delete gb;
 }
 
 void Drawer::DrawPG(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     vector<Gdiplus::PointF> list;
     Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj);
     int n = PG->getPoints().size();
@@ -81,63 +148,59 @@ void Drawer::DrawPG(Shapes::Object* obj){
         list.push_back({PG->getPoints()[i].GetX() * s, PG->getPoints()[i].GetY() * s});
     }
 
-    GraphicsPath path;
+    Gdiplus::GraphicsPath path;
     if (obj->getFillRule() == "nonzero"){
         path.SetFillMode(FillModeWinding);
     }else{
         path.SetFillMode(FillModeAlternate);
     }
     path.AddPolygon(list.data(), PG->getPoints().size());
-    g->FillPath(b, &path);
+    if(PG->getColor().GetGradient() != "")  FillPGGradient(PG, &path);
+    else   g->FillPath(b, &path);
     g->DrawPath(p, &path);
-    g->ResetTransform();
+    Reset();
 }
+
+void Drawer::FillPLGradient(Shapes::Polyline* PL, vector <Gdiplus::PointF> pF){
+    setGradientBrush(PL->getColor().GetGradient(), PL->getColor().GetAlpha());
+    g->FillPolygon(gb, pF.data(), static_cast<int> (pF.size()));
+    delete gb;
+}
+
 
 void Drawer::DrawPL(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     vector <Gdiplus::PointF> pF;
     Shapes::Polyline* PL = dynamic_cast <Shapes::Polyline*> (obj);
     int size = PL->getPoints().size();
     for (int i = 0; i < size; i++){
         pF.push_back({PL->getPoints()[i].GetX() * s, PL->getPoints()[i].GetY() * s});
     }
-    
 
-    g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
+    if(PL->getColor().GetGradient() != "") FillPLGradient(PL, pF);
+    else    g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
     g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
-    g->ResetTransform();
+    Reset();
 }
+
+void Drawer::FillTextGradient(Shapes::Text* T, Gdiplus::GraphicsPath* text){
+    setGradientBrush(T->getColor().GetGradient(), T->getColor().GetAlpha());
+    g->FillPath(gb, text);
+    delete gb;
+}
+
 
 void Drawer::DrawT(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Text* T = dynamic_cast<Shapes::Text*>(obj);
 
     // Create a wide string for Font Family 
-    size_t size_needed = mbstowcs(nullptr, T->getFontFamily().c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wff(size_needed, L'\0');
-    mbstowcs(&wff[0], T->getFontFamily().c_str(), size_needed);
+    wstring_convert<std::codecvt_utf8_utf16<wchar_t>> converter;
+    wstring wff = converter.from_bytes(T->getFontFamily());
 
-    //Create a wide string for Text
-    size_needed = mbstowcs(nullptr, T->getText().c_str(), 0);
-    if (size_needed == static_cast<size_t>(-1)) {
-        std::wcerr << L"Error converting string to wide string." << endl;
-        return;
-    }
-    wstring wtext(size_needed, L'\0');
-    mbstowcs(&wtext[0], T->getText().c_str(), size_needed);
-
-    // Font Family
+    // Font Family & Font
     Gdiplus::FontFamily* ff = new Gdiplus::FontFamily(wff.c_str());
+    Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
 
     // Check if it can load the Font Family 
     if (!ff->IsAvailable()){
@@ -145,37 +208,85 @@ void Drawer::DrawT(Shapes::Object* obj){
         ff = new Gdiplus::FontFamily(L"Times New Roman"); // If no then it will load the default
     }
 
+
     // Recalculating the Top-Left Point because of the Text-anchor attribute
     if (!T->getTextAnchor().empty() && T->getTextAnchor() != "start"){
-        Shapes::Point TA(T->getTop());
-        Gdiplus::Font font(ff, T->getFontSize(), T->getFontStyle(), Gdiplus::UnitPixel);
+        Shapes::Point TA(T->getTop(0));
         Gdiplus::RectF Bounding_Box;
-        g->MeasureString(wtext.c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
-        
+        g->MeasureString(T->getText().c_str(), T->getText().size(), &font, (Gdiplus::PointF){TA.GetX(), TA.GetY()}, &Bounding_Box);
+
         if (T->getTextAnchor() == "middle")
             TA.SetX(TA.GetX() - Bounding_Box.Width/2);
         else if (T->getTextAnchor() == "end")
             TA.SetX(TA.GetX() - Bounding_Box.Width);
+        
+        T->setTop_X(0, TA.GetX());
+    }
+
+    // Calculate each letter Top-Left corner
+    vector<float> dx = T->Get_dx();
+    vector<float> dy = T->Get_dy();
+
+    Shapes::Point Prev(T->getTop(0));
+    for (int i = 0; i < T->getText().size(); i++){
+        if (i == 0){
+            if (!dx.empty()){
+                float tmp = T->getTop(i).GetX() + dx[i];
+                T->setTop_X(i, tmp);
+            }
+            if (!dy.empty()){
+                float tmp = T->getTop(i).GetY() + dy[i];
+                T->setTop_Y(i, tmp);
+            }
+        }
+        else {
+            Gdiplus::RectF Bounding_Box;
+            g->MeasureString(&T->getText()[i], T->getText().size(), &font, (Gdiplus::PointF){Prev.GetX(), Prev.GetY()}, &Bounding_Box);
+            Prev.SetX(Prev.GetX() + Bounding_Box.Width);
+            Shapes::Point p(Prev);
+            if (i < dx.size()){
+                float tmp = p.GetX() + dx[i];
+                p.SetX(tmp);
+            }
+
+            if (i < dy.size()){
+                float tmp = p.GetY() + dy[i];
+                p.SetY(tmp);
+            }
+            T->addTop(p);
+        }
     }
 
 
     Gdiplus::GraphicsPath text;
     text.StartFigure();
-    text.AddString(wtext.c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize(), (Gdiplus::PointF){T->getTop().GetX() * s, T->getTop().GetY() * s}, nullptr);
+    
+    if (dx.empty() && dy.empty())
+        text.AddString(T->getText().c_str(), T->getText().size(), ff, T->getFontStyle(), T->getFontSize() * s, (Gdiplus::PointF){T->getTop(0).GetX() * s, T->getTop(0).GetY() * s}, nullptr);
+    else {
+        for (int i = 0; i < T->getText().size(); i++){
+            text.AddString(&T->getText()[i], 1, ff, T->getFontStyle(), T->getFontSize() * s, (Gdiplus::PointF){T->getTop(i).GetX() * s, T->getTop(i).GetY() * s}, nullptr);
+        }
+    }
+
     text.CloseFigure();
 
     g->DrawPath(p, &text);
-    g->FillPath(b, &text);
-    g->ResetTransform();
+    if(T->getColor().GetGradient() != "")   FillTextGradient(T, &text);
+    else    g->FillPath(b, &text);
+    Reset();
 
     delete ff;
 }
 
+void Drawer::FillPGradient(Shapes::Path* P, Gdiplus::GraphicsPath* path){
+    setGradientBrush(P->getColor().GetGradient(), P->getColor().GetAlpha());
+    g->FillPath(gb, path);
+    delete gb;
+}
+
 void Drawer::DrawP(Shapes::Object* obj){
     setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
 
     Gdiplus::GraphicsPath path;
@@ -341,8 +452,8 @@ void Drawer::DrawP(Shapes::Object* obj){
             }else{
                 Control1 = pre;
             }
-            Control2 = pre + PointF(coor[0], coor[1]);
-            cur = pre + PointF(coor[2], coor[3]);
+            Control2 = pre + Gdiplus::PointF(coor[0], coor[1]);
+            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
             
             path.AddBezier(pre, Control1, Control2, cur);
             
@@ -370,8 +481,8 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Quadratic Bezier (absolute)\n";
         }
         else if (c == 'q'){
-            Gdiplus::PointF Quad = pre + PointF(coor[0], coor[1]);
-            cur = pre + PointF(coor[2], coor[3]);
+            Gdiplus::PointF Quad = pre + Gdiplus::PointF(coor[0], coor[1]);
+            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
 
             Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
@@ -409,7 +520,7 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
         else if (c == 't'){
             Gdiplus::PointF Quad = pre + pre - preCurve;
-            cur = pre + PointF(coor[0], coor[1]);
+            cur = pre + Gdiplus::PointF(coor[0], coor[1]);
 
             Gdiplus::PointF Control1 = pre;
             Control1.X += 2 * (Quad.X - pre.X) / 3.0;
@@ -446,17 +557,15 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
     }
     char end = cmd.back().getCmd();
-    g->FillPath(b, &path);
     g->DrawPath(p, &path);
-    g->ResetTransform();
+    if(P->getColor().GetGradient() != "")   FillPGradient(P, &path);
+    else    g->FillPath(b, &path);
+    Reset();
 }
 
 void Drawer::DrawG(Shapes::Object* obj){
-    setDrawer(obj);
-    Gdiplus::Matrix Ma;
-    obj->setTransform(Ma, s, anchor);
-    g->SetTransform(&Ma);
     Shapes::Group* G = dynamic_cast<Shapes::Group*>(obj);
+
     for (int i = 0; i < G->GetSize(); i++){
         if(dynamic_cast <Shapes::Rectangle*> (G->GetShape(i))){
             DrawR(G->GetShape(i));
@@ -485,7 +594,7 @@ void Drawer::DrawG(Shapes::Object* obj){
             DrawG(G->GetShape(i));
         }
     }
-    g->ResetTransform();
+    Reset();
 }
 
 void Drawer::Draw(){
