@@ -1,6 +1,7 @@
 #include "Drawer.h"
 #include "General.h"
 #include <locale>
+#include <iostream>
 #include <codecvt>
 
 void Drawer::Reset(){
@@ -9,7 +10,41 @@ void Drawer::Reset(){
 }
 
 void Drawer::setDrawer(Shapes::Object* obj){
+    Gdiplus::Matrix MVB;
+    float scale_x = 1;
+    float scale_y = 1;
+    float scale_factor;
+
+    if (VB.GetWidth() != 1){
+        if (VP.GetWidth() != 300){
+                scale_x = VP.GetWidth()/VB.GetWidth();
+        }
+        else {
+            Gdiplus::RectF bounds;
+            g->GetClipBounds(&bounds);
+            scale_x = bounds.Width/VB.GetWidth();
+        }
+    }
+    
+    if (VB.GetHeight() != 1){
+        if (VP.GetHeight() != 150){
+                scale_y = VP.GetHeight()/VB.GetHeight();
+        }
+        else {
+            Gdiplus::RectF bounds;
+            g->GetClipBounds(&bounds);
+            scale_y = bounds.Height/VB.GetHeight();
+        }
+    }
+    
+    scale_factor = min (scale_x, scale_y);
+    MVB.Scale(scale_factor, scale_factor);
+    MVB.Translate(VB.GetTop().GetX(), VB.GetTop().GetY());
+
     obj->setTransform(Ma, s, anchor);
+
+    Ma.Multiply(&MVB, Gdiplus::MatrixOrderAppend);
+
     g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
@@ -18,7 +53,8 @@ void Drawer::setDrawer(Shapes::Object* obj){
     p->SetMiterLimit(obj->getStrokeMiterLimit());
 }
 
-Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, LinearVector linear){
+
+Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, GradientVector linear, ViewBox vb, ViewPort vp){
     int n = list.size();
     for(int i = 0; i < n; i++){
         shapeList.push_back(std::move(list[i]));
@@ -30,42 +66,66 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     p = new Gdiplus::Pen(Gdiplus::Color(0,0,0,0), 0);
     b = new Gdiplus::SolidBrush(Gdiplus::Color(0,0,0,0));
     gradientList = linear;
+    VB = vb;
+    VP = vp;
 }
 
 void Drawer::setGradientBrush(string r, float alpha){
     int default_opacity = 100;
     for(int i = 0; i < gradientList.get_content().size(); i++){
-        if(r == gradientList.get_content()[i].get_id()){
+        if(r == gradientList.get_content()[i]->get_id()){
             Gdiplus::Color color_array[50];
             float stop_array[50];
-            LinearGradient LG = gradientList.get_content()[i];
-            int stops_amount = LG.get_amount();
-            Gdiplus::PointF p1(LG.get_start().GetX() * s, LG.get_start().GetY() * s), p2(LG.get_end().GetX() * s, LG.get_end().GetY() * s);
-            gb = new Gdiplus::LinearGradientBrush(p1, p2, LG.get_colors()[0], LG.get_colors()[LG.get_amount()]);
+            LinearGradient* LG = dynamic_cast<LinearGradient*> (gradientList.get_content()[i]);
+            int stops_amount = LG->get_amount();
+            // Gdiplus::PointF p1(LG->get_start().GetX() * s, LG->get_start().GetY() * s);
+            // Gdiplus::PointF p2(LG->get_end().GetX() * s, LG->get_end().GetY() * s);
+            Gdiplus::PointF p1(((float)(LG->get_start().GetX() + LG->get_end().GetX()) / 2 - (LG->get_end().GetX() - LG->get_start().GetX())) * s, ((float)(LG->get_start().GetY() + LG->get_end().GetY()) / 2 - (LG->get_end().GetY() - LG->get_start().GetY())) * s);
+            Gdiplus::PointF p2(((float)(LG->get_start().GetX() + LG->get_end().GetX()) / 2 + (LG->get_end().GetX() - LG->get_start().GetX())) * s, ((float)(LG->get_start().GetY() + LG->get_end().GetY()) / 2 + (LG->get_end().GetY() - LG->get_start().GetY())) * s);
+            gb = new Gdiplus::LinearGradientBrush(p1, p2, LG->get_colors()[0], LG->get_colors()[LG->get_amount()]);
             int idx = 0;
             for(int i = 0; i < stops_amount; i++){
-                float opacity = alpha * ((float)LG.get_colors()[i].GetAlpha());
-                if(opacity < 50 && idx != 0){
-                    Gdiplus::Color backup(alpha * (LG.get_colors()[idx].GetAlpha() + LG.get_colors()[idx-1].GetAlpha())/2,  LG.get_colors()[idx-1].GetRed()*0.5 + LG.get_colors()[idx].GetRed()*0.5, LG.get_colors()[idx-1].GetGreen()*0.5 + LG.get_colors()[idx].GetGreen()*0.5, LG.get_colors()[idx-1].GetBlue()*0.5 + LG.get_colors()[idx].GetBlue()*0.5);
-                    color_array[i] = backup;
-                    stop_array[i] = LG.get_stops()[idx] - ((LG.get_stops()[idx] - LG.get_stops()[idx-1]) / 2);
+                float opacity = alpha * ((float)LG->get_colors()[idx].GetAlpha());
+                if(i == 0){
+                    Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
+                    color_array[i] = c;
+                    stop_array[i] = 0;
                     i++;
                     stops_amount++;
                 }
 
-                Gdiplus::Color c(opacity, LG.get_colors()[idx].GetRed(), LG.get_colors()[idx].GetGreen(), LG.get_colors()[idx].GetBlue());
-                color_array[i] = c;
-                stop_array[i] = LG.get_stops()[idx];
-                
-                if(opacity  < 50 && idx < LG.get_amount() - 1){
-                    i++;
-                    Gdiplus::Color backup(alpha * (LG.get_colors()[idx].GetAlpha() + LG.get_colors()[idx+1].GetAlpha())/2,  LG.get_colors()[idx+1].GetRed()*0.5 + LG.get_colors()[idx].GetRed()*0.5, LG.get_colors()[idx+1].GetGreen()*0.5 + LG.get_colors()[idx].GetGreen()*0.5, LG.get_colors()[idx+1].GetBlue()*0.5 + LG.get_colors()[idx].GetBlue()*0.5);
+                if(opacity < 50 && idx != 0){
+                    Gdiplus::Color backup(alpha * ((LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2),  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
                     color_array[i] = backup;
-                    stop_array[i] = LG.get_stops()[idx] + ((LG.get_stops()[idx+1] - LG.get_stops()[idx]) / 2);
+                    stop_array[i] = LG->get_stops()[idx] - ((LG->get_stops()[idx] - LG->get_stops()[idx-1]) / 2);
+                    i++;
+                    stops_amount++;
+                    cout << alpha * ((LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2) << "a\n";
+                }
+                Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
+                color_array[i] = c;
+                stop_array[i] = (LG->get_stops()[idx]*2 + 1) / 4;
+                cout << endl << (int)color_array[i].GetAlpha() << " " << stop_array[i] << endl;
+                
+                if(opacity  < 50 && idx < LG->get_amount() - 1){
+                    i++;
+                    Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx+1].GetAlpha())/2,  LG->get_colors()[idx+1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx+1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx+1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
+                    color_array[i] = backup;
+                    stop_array[i] = (LG->get_stops()[idx] + ((LG->get_stops()[idx+1] - LG->get_stops()[idx]) / 2) + 1) / 3;
+                    cout << "b\n";
+                    stops_amount++;
+                }
+
+                if(i == stops_amount - 1){
+                    i++;
+                    Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2,  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
+                    color_array[i] = backup;
+                    stop_array[i] = 1;
                     stops_amount++;
                 }
                 idx++;
             }
+            gb->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
             gb->SetInterpolationColors(color_array, stop_array, stops_amount);
             break;
         }

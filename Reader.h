@@ -8,6 +8,10 @@
 #include "Path.h"
 #include "General.h"
 
+
+void addSpaces(string &s);
+void removeSpareSpaces(string &s);
+
 class Reader{
 public:
     Reader();

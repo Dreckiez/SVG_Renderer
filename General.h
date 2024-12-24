@@ -7,14 +7,8 @@
 #include <gdiplus.h>
 #include <algorithm>
 #include <string>
-#include <iostream>
-
-using namespace std;
 using namespace Gdiplus;
-
-void addSpaces(string &s);
-void removeSpareSpaces(string &s);
-void toLowerCase(string &s);
+using namespace std;
 
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians);
@@ -30,5 +24,7 @@ void AddSvgArcToPath(Gdiplus::GraphicsPath& path,
                      float xAxisRotation, 
                      int largeArcFlag, 
                      int sweepFlag);
+
+float ConvertUnit(string s);
 
 #endif
