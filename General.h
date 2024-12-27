@@ -10,6 +10,12 @@
 using namespace Gdiplus;
 using namespace std;
 
+void addSpaces(string &s);
+
+void removeSpareSpaces(string &s);
+
+void toLowerCase(string &s);
+
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians);
 
