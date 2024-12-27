@@ -488,37 +488,49 @@ void Drawer::DrawP(Shapes::Object* obj){
             Gdiplus::PointF Control1 (0,0);
             Gdiplus::PointF Control2 (0,0);
 
-            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
-                Control1 = pre + pre - preCurve;
-            }else{
-                Control1 = pre;
+            for (int j = 0; j < pSize - 3; j++){
+                if (j == 0){
+                    if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                        cout << j << endl;
+                        Control1 = pre + pre - preCurve;
+                    }else{
+                        Control1 = pre;
+                    }
+                }else{
+                    Control1 = pre + pre - preCurve;
+                }
+                Control2 = {coor[j], coor[j + 1]};
+                cur = {coor[j + 2], coor[j + 3]};
+                j += 3;
+                path.AddBezier(pre, Control1, Control2, cur);
+                
+                pre = cur;
+                preCurve = Control2;
             }
-            Control2 = {coor[0], coor[1]};
-
-            cur = {coor[2], coor[3]};
-            
-            path.AddBezier(pre, Control1, Control2, cur);
-            
-            pre = cur;
-            preCurve = Control2;
 
             cout << "Smooth Cubic Bezier (absolute)\n";
         }
         else if (c == 's'){
             Gdiplus::PointF Control1 (0,0);
             Gdiplus::PointF Control2 (0,0);
-            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
-                Control1 = pre + pre - preCurve;
-            }else{
-                Control1 = pre;
+            for (int j = 0; j < pSize - 3; j++){
+                if (j == 0){
+                    if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                        Control1 = pre + pre - preCurve;
+                    }else{
+                        Control1 = pre;
+                    }
+                }else{
+                    Control1 = pre + pre - preCurve;
+                }
+                Control2 = pre + Gdiplus::PointF(coor[j], coor[j + 1]);
+                cur = pre + Gdiplus::PointF(coor[j + 2], coor[j + 3]);
+                j += 3;
+                path.AddBezier(pre, Control1, Control2, cur);
+                
+                preCurve = Control2;
+                pre = cur;
             }
-            Control2 = pre + Gdiplus::PointF(coor[0], coor[1]);
-            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
-            
-            path.AddBezier(pre, Control1, Control2, cur);
-            
-            preCurve = Control2;
-            pre = cur;
 
             cout << "Smooth Cubic Bezier (relative)\n";
         }
@@ -613,7 +625,6 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
         else if (c == 'Z' || c == 'z'){
             path.CloseFigure();
-            path.SetFillMode(Gdiplus::FillModeWinding);
             cout << "Close\n";
         }
     }

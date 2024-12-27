@@ -1,23 +1,5 @@
 #include "Reader.h"
 
-void addSpaces(string &s){
-    //replace all delimeter into spaces
-    for (int i = 0; i < s.size(); i++){
-        if ((s[i] == ',' || s[i] == '\n')){
-            s[i]= ' ';
-        }
-    }
-}
-
-void removeSpareSpaces(string &s){
-    //remove excessive spaces
-    for (int i = 0; i < s.size() - 1; i++){
-        if (s[i] == ' ' && s[i + 1] == ' '){
-            s.erase(i, 1);
-           i--;
-        }
-    }
-}
 
 Reader::Reader() {
     cout << "Reader constructed\n";

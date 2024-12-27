@@ -31,7 +31,6 @@ static unordered_map<std::string, tuple<int,int,int>> namedColors = {
         {"cornsilk", {255, 248, 220}},
         {"crimson", {220, 20, 60}},
         {"cyan", {0, 255, 255}},
-        {"CYAN", {0, 255, 255}},
         {"darkblue", {0, 0, 139}},
         {"darkcyan", {0, 139, 139}},
         {"darkgoldenrod", {184, 134, 11}},

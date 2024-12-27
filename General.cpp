@@ -2,6 +2,32 @@
 #include <iostream>
 using namespace std;
 
+void addSpaces(string &s){
+    //replace all delimeter into spaces
+    for (int i = 0; i < s.size(); i++){
+        if ((s[i] == ',' || s[i] == '\n')){
+            s[i]= ' ';
+        }
+    }
+}
+
+void removeSpareSpaces(string &s){
+    //remove excessive spaces
+    for (int i = 0; i < s.size() - 1; i++){
+        if (s[i] == ' ' && s[i + 1] == ' '){
+            s.erase(i, 1);
+           i--;
+        }
+    }
+}
+
+void toLowerCase(string &s){
+    for (int i = 0; i < s.size(); i++){
+        s[i] = char(tolower(s[i]));
+    }
+}
+
+
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians) {
     return radians * 180.0 / M_PI;

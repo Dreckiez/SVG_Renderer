@@ -9,6 +9,8 @@
 #include "tinyxml2.h"
 #include <memory>
 
+#include "General.h"
+
 using namespace std;
 using namespace Gdiplus;
 using namespace tinyxml2;
