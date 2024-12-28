@@ -87,20 +87,19 @@ void addStops(int& stops_amount, LinearGradient* LG, float alpha, Gdiplus::Color
         if(opacity < 50 && idx != 0){
             Gdiplus::Color backup(alpha * ((LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2),  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
             color_array[i] = backup;
-            stop_array[i] = LG->get_stops()[idx] - ((LG->get_stops()[idx] - LG->get_stops()[idx-1]) / 2);
+            stop_array[i] = (LG->get_stops()[idx] - ((LG->get_stops()[idx] - LG->get_stops()[idx-1]) / 2) + 3)/7;
             i++;
             stops_amount++;
         }
         Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
         color_array[i] = c;
         stop_array[i] = (LG->get_stops()[idx]+ 3) / 7;
-        // (*2 + 1)/4
         
         if(opacity  < 50 && idx < LG->get_amount() - 1){
             i++;
             Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx+1].GetAlpha())/2,  LG->get_colors()[idx+1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx+1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx+1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
             color_array[i] = backup;
-            stop_array[i] = (LG->get_stops()[idx] + ((LG->get_stops()[idx+1] - LG->get_stops()[idx]) / 2) + 1) / 3;
+            stop_array[i] = (LG->get_stops()[idx] + ((LG->get_stops()[idx+1] - LG->get_stops()[idx]) / 2) + 3) / 7;
             stops_amount++;
         }
 

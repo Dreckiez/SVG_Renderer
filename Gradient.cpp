@@ -199,7 +199,6 @@ void Gradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
-    gb->TranslateTransform(-anchor.X*(1-s) / 3, -anchor.Y*(1-s) / 3);
     while(getline(ss, type, '(')){
         if(type == "translate"){
             getline(ss, para, ')');
@@ -223,7 +222,6 @@ void Gradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::
             getline(ss, para, ' ');
             translate_x*=s;
             translate_y*=s;
-            cout << translate_x << " " << translate_y << endl;
             gb->TranslateTransform(-translate_x/3.3, -translate_y/3.3);
             translate_x = 0;
             translate_y = 0;
