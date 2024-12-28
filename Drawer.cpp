@@ -1,6 +1,7 @@
 #include "Drawer.h"
 #include "General.h"
 #include <locale>
+#include <iostream>
 #include <codecvt>
 
 void Drawer::Reset(){
@@ -9,7 +10,41 @@ void Drawer::Reset(){
 }
 
 void Drawer::setDrawer(Shapes::Object* obj){
+    Gdiplus::Matrix MVB;
+    float scale_x = 1;
+    float scale_y = 1;
+    float scale_factor;
+
+    if (VB.GetWidth() != 1){
+        if (VP.GetWidth() != 300){
+                scale_x = VP.GetWidth()/VB.GetWidth();
+        }
+        else {
+            Gdiplus::RectF bounds;
+            g->GetClipBounds(&bounds);
+            scale_x = bounds.Width/VB.GetWidth();
+        }
+    }
+    
+    if (VB.GetHeight() != 1){
+        if (VP.GetHeight() != 150){
+                scale_y = VP.GetHeight()/VB.GetHeight();
+        }
+        else {
+            Gdiplus::RectF bounds;
+            g->GetClipBounds(&bounds);
+            scale_y = bounds.Height/VB.GetHeight();
+        }
+    }
+    
+    scale_factor = min (scale_x, scale_y);
+    MVB.Scale(scale_factor, scale_factor);
+    MVB.Translate(VB.GetTop().GetX(), VB.GetTop().GetY());
+
     obj->setTransform(Ma, s, anchor);
+
+    Ma.Multiply(&MVB, Gdiplus::MatrixOrderAppend);
+
     g->SetTransform(&Ma);
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
@@ -20,7 +55,8 @@ void Drawer::setDrawer(Shapes::Object* obj){
     p->SetMiterLimit(obj->getStrokeMiterLimit());
 }
 
-Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, GradientVector linear){
+
+Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, float s, Gdiplus::PointF anchor, GradientVector linear, ViewBox vb, ViewPort vp){
     int n = list.size();
     for(int i = 0; i < n; i++){
         shapeList.push_back(std::move(list[i]));
@@ -32,6 +68,8 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     p = new Gdiplus::Pen(Gdiplus::Color(0,0,0,0), 0);
     b = new Gdiplus::SolidBrush(Gdiplus::Color(0,0,0,0));
     gradientList = linear;
+    VB = vb;
+    VP = vp;
 }
 
 void addStops(int& stops_amount, LinearGradient* LG, float alpha, Gdiplus::Color color_array[50], float stop_array[50]){
@@ -446,37 +484,49 @@ void Drawer::DrawP(Shapes::Object* obj){
             Gdiplus::PointF Control1 (0,0);
             Gdiplus::PointF Control2 (0,0);
 
-            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
-                Control1 = pre + pre - preCurve;
-            }else{
-                Control1 = pre;
+            for (int j = 0; j < pSize - 3; j++){
+                if (j == 0){
+                    if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                        cout << j << endl;
+                        Control1 = pre + pre - preCurve;
+                    }else{
+                        Control1 = pre;
+                    }
+                }else{
+                    Control1 = pre + pre - preCurve;
+                }
+                Control2 = {coor[j], coor[j + 1]};
+                cur = {coor[j + 2], coor[j + 3]};
+                j += 3;
+                path.AddBezier(pre, Control1, Control2, cur);
+                
+                pre = cur;
+                preCurve = Control2;
             }
-            Control2 = {coor[0], coor[1]};
-
-            cur = {coor[2], coor[3]};
-            
-            path.AddBezier(pre, Control1, Control2, cur);
-            
-            pre = cur;
-            preCurve = Control2;
 
             cout << "Smooth Cubic Bezier (absolute)\n";
         }
         else if (c == 's'){
             Gdiplus::PointF Control1 (0,0);
             Gdiplus::PointF Control2 (0,0);
-            if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
-                Control1 = pre + pre - preCurve;
-            }else{
-                Control1 = pre;
+            for (int j = 0; j < pSize - 3; j++){
+                if (j == 0){
+                    if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
+                        Control1 = pre + pre - preCurve;
+                    }else{
+                        Control1 = pre;
+                    }
+                }else{
+                    Control1 = pre + pre - preCurve;
+                }
+                Control2 = pre + Gdiplus::PointF(coor[j], coor[j + 1]);
+                cur = pre + Gdiplus::PointF(coor[j + 2], coor[j + 3]);
+                j += 3;
+                path.AddBezier(pre, Control1, Control2, cur);
+                
+                preCurve = Control2;
+                pre = cur;
             }
-            Control2 = pre + Gdiplus::PointF(coor[0], coor[1]);
-            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
-            
-            path.AddBezier(pre, Control1, Control2, cur);
-            
-            preCurve = Control2;
-            pre = cur;
 
             cout << "Smooth Cubic Bezier (relative)\n";
         }
@@ -571,7 +621,6 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
         else if (c == 'Z' || c == 'z'){
             path.CloseFigure();
-            path.SetFillMode(Gdiplus::FillModeWinding);
             cout << "Close\n";
         }
     }

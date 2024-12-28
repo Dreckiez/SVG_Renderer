@@ -1,3 +1,6 @@
+#ifndef GRADIENT_H
+#define GRADIENT_H
+
 #include "objects.h"
 
 class Gradient{
@@ -48,3 +51,5 @@ public:
     void read_gradient(tinyxml2::XMLElement* defs);
     void clear();
 };
+
+#endif

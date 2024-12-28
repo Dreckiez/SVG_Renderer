@@ -1,4 +1,32 @@
 #include "General.h"
+#include <iostream>
+using namespace std;
+
+void addSpaces(string &s){
+    //replace all delimeter into spaces
+    for (int i = 0; i < s.size(); i++){
+        if ((s[i] == ',' || s[i] == '\n')){
+            s[i]= ' ';
+        }
+    }
+}
+
+void removeSpareSpaces(string &s){
+    //remove excessive spaces
+    for (int i = 0; i < s.size() - 1; i++){
+        if (s[i] == ' ' && s[i + 1] == ' '){
+            s.erase(i, 1);
+           i--;
+        }
+    }
+}
+
+void toLowerCase(string &s){
+    for (int i = 0; i < s.size(); i++){
+        s[i] = char(tolower(s[i]));
+    }
+}
+
 
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians) {
@@ -122,4 +150,36 @@ void AddSvgArcToPath(Gdiplus::GraphicsPath& path,
 
     // Apply rotation and add the arc
     path.AddArc(arcRect, startAngle, sweepAngle);
+}
+
+float ConvertUnit(string s){
+    if (s.empty()){
+        cout << "Empty\n";
+        return 0;
+    }
+
+    if (s.find("pt") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 1.33*stof(s);
+    }
+    else if (s.find("pc") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 16*stof(s);
+    }
+    else if (s.find("in") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 96*stof(s);
+    }
+    else if (s.find("cm") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 37.8*stof(s);
+    }
+    else if (s.find("mm") != string::npos){
+        s.erase(s.size() - 2, 2);
+        return 3.78*stof(s);
+    }
+    else if (s.find("px") != string::npos){
+        s.erase(s.size() - 2, 2);
+    }
+    return stof(s);
 }

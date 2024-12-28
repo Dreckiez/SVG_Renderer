@@ -6,7 +6,15 @@
 #include <propidl.h>
 #include <gdiplus.h>
 #include <algorithm>
+#include <string>
 using namespace Gdiplus;
+using namespace std;
+
+void addSpaces(string &s);
+
+void removeSpareSpaces(string &s);
+
+void toLowerCase(string &s);
 
 // Helper function to calculate angle in degrees
 double RadiansToDegrees(double radians);
@@ -22,5 +30,7 @@ void AddSvgArcToPath(Gdiplus::GraphicsPath& path,
                      float xAxisRotation, 
                      int largeArcFlag, 
                      int sweepFlag);
+
+float ConvertUnit(string s);
 
 #endif

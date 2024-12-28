@@ -1,23 +1,5 @@
 #include "Reader.h"
 
-void addSpaces(string &s){
-    //replace all delimeter into spaces
-    for (int i = 0; i < s.size(); i++){
-        if ((s[i] == ',' || s[i] == '\n')){
-            s[i]= ' ';
-        }
-    }
-}
-
-void removeSpareSpaces(string &s){
-    //remove excessive spaces
-    for (int i = 0; i < s.size() - 1; i++){
-        if (s[i] == ' ' && s[i + 1] == ' '){
-            s.erase(i, 1);
-           i--;
-        }
-    }
-}
 
 Reader::Reader() {
     cout << "Reader constructed\n";
@@ -25,25 +7,42 @@ Reader::Reader() {
 
 void Reader::ReadRectangle(Shapes::Rectangle* rect, XMLElement* E) {
     Shapes::Point p;
-    p.SetX(E->FloatAttribute("x"));
-    p.SetY(E->FloatAttribute("y"));
+    const char* x = E->Attribute("x");
+    const char* y = E->Attribute("y");
+    const char* w = E->Attribute("width");
+    const char* h = E->Attribute("height");
+    
+    if (x)
+        p.SetX(ConvertUnit(x));
+    if (y)
+        p.SetY(ConvertUnit(y));
     rect->setPoint(p);
 
-    rect->setWidth(E->FloatAttribute("width"));
-    rect->setHeight(E->FloatAttribute("height"));
+    if (w)
+        rect->setWidth(ConvertUnit(w));
+    if (h)
+        rect->setHeight(ConvertUnit(h));
 
     rect->SetAttribute(E);
 }
 
 void Reader::ReadLine(Shapes::Line* line, XMLElement* E) {
     Shapes::Point start, end;
+    const char* x1 = E->Attribute("x1");
+    const char* y1 = E->Attribute("y1");
+    const char* x2 = E->Attribute("x2");
+    const char* y2 = E->Attribute("y2");
 
-    start.SetX(E->FloatAttribute("x1"));
-    start.SetY(E->FloatAttribute("y1"));
+    if (x1)
+        start.SetX(ConvertUnit(x1));
+    if (y1)
+        start.SetY(ConvertUnit(y1));
     line->setStart(start);
 
-    end.SetX(E->FloatAttribute("x2"));
-    end.SetY(E->FloatAttribute("y2"));
+    if (x2)
+        end.SetX(ConvertUnit(x2));
+    if (y2)
+        end.SetY(ConvertUnit(y2));
     line->setEnd(end);
 
     line->SetAttribute(E);
@@ -51,25 +50,39 @@ void Reader::ReadLine(Shapes::Line* line, XMLElement* E) {
 
 void Reader::ReadCircle(Shapes::Circle* circle, XMLElement* E) {
     Shapes::Point center;
+    const char* cx = E->Attribute("cx");
+    const char* cy = E->Attribute("cy");
+    const char* r = E->Attribute("r");
 
-    center.SetX(E->FloatAttribute("cx"));
-    center.SetY(E->FloatAttribute("cy"));
+    if (cx)
+        center.SetX(ConvertUnit(cx));
+    if (cy)
+        center.SetY(ConvertUnit(cy));
     circle->setCenter(center);
 
-    circle->setRadius(E->FloatAttribute("r"));
+    if (r)
+        circle->setRadius(ConvertUnit(r));
 
     circle->SetAttribute(E);
 }
 
 void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
     Shapes::Point center;
+    const char* cx = E->Attribute("cx");
+    const char* cy = E->Attribute("cy");
+    const char* rx = E->Attribute("rx");
+    const char* ry = E->Attribute("ry");
 
-    center.SetX(E->FloatAttribute("cx"));
-    center.SetY(E->FloatAttribute("cy"));
+    if (cx)
+        center.SetX(ConvertUnit(cx));
+    if (cy)
+        center.SetY(ConvertUnit(cy));
     ellipse->setCenter(center);
 
-    ellipse->setRadiusX(E->FloatAttribute("rx"));
-    ellipse->setRadiusY(E->FloatAttribute("ry"));
+    if (rx)
+        ellipse->setRadiusX(ConvertUnit(rx));
+    if (ry)
+        ellipse->setRadiusY(ConvertUnit(ry));
 
     ellipse->SetAttribute(E);
 }
@@ -83,12 +96,12 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
 
     stringstream ss(p);
 
-    float x = 0;
-    float y = 0;
+    string x = "0";
+    string y = "0";
     while (ss >> x >> y) {
         Shapes::Point p;
-        p.SetX(x);
-        p.SetY(y);
+        p.SetX(ConvertUnit(x));
+        p.SetY(ConvertUnit(y));
         points.push_back(p);
     }
     polygon->setPoints(points);
@@ -105,12 +118,12 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
 
     stringstream ss(p);
 
-    float x = 0;
-    float y = 0;
+    string x = "0";
+    string y = "0";
     while (ss >> x >> y) {
         Shapes::Point p;
-        p.SetX(x);
-        p.SetY(y);
+        p.SetX(ConvertUnit(x));
+        p.SetY(ConvertUnit(y));
         points.push_back(p);
     }
     polyline->setPoints(points);
@@ -121,14 +134,14 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
 void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
     float fontsize;
     if (E->Attribute("font-size")){
-        fontsize = E->FloatAttribute("font-size");
+        fontsize = ConvertUnit(E->Attribute("font-size"));
         text->setFontSize(fontsize);
     }
     
     Shapes::Point top;
 
-    float x = E->FloatAttribute("x");
-    float y = (E->FloatAttribute("y"));
+    const char* x = E->Attribute("x");
+    const char* y = E->Attribute("y");
     
     const char* dx = E->Attribute("dx");
     const char* dy = E->Attribute("dy");
@@ -138,9 +151,9 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
         addSpaces(tmp);
         removeSpareSpaces(tmp);
         stringstream ss(tmp);
-        float dx_tmp;
+        string dx_tmp;
         while(ss >> dx_tmp)
-            text->add_dx(dx_tmp);
+            text->add_dx(ConvertUnit(dx_tmp));
     }
 
     if (dy){
@@ -148,13 +161,16 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
         addSpaces(tmp);
         removeSpareSpaces(tmp);
         stringstream ss(tmp);
-        float dy_tmp;
+        string dy_tmp;
         while(ss >> dy_tmp)
-            text->add_dy(dy_tmp);
+            text->add_dy(ConvertUnit(dy_tmp));
     }
 
-    top.SetX(x);
-    top.SetY(y - text->getFontSize());
+    if (x)
+        top.SetX(ConvertUnit(x));
+    if (y)
+        top.SetY(ConvertUnit(y) - text->getFontSize());
+    else top.SetY(0 - text->getFontSize());
     text->addTop(top);
 
 
