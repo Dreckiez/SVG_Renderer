@@ -142,14 +142,44 @@ void Drawer::FillRectGradient(Shapes::Rectangle* R){
 void Drawer::DrawR(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Rectangle* R = dynamic_cast<Shapes::Rectangle*>(obj);
+    if (R->getRx() != 0 || R->getRy() != 0){
+        float rx = min(R->getRx(), R->getWidth() / 2);
+        float ry = min(R->getRy(), R->getHeight() / 2);
+        float x = R->getPoint().GetX();
+        float y = R->getPoint().GetY();
+        float width = R->getWidth();
+        float height = R->getHeight();
+        GraphicsPath path;
 
-    if(obj->getColor().GetGradient() != ""){
-        FillRectGradient(R);
+        if (obj->getFillRule() == "nonzero"){
+            path.SetFillMode(FillModeWinding);
+        }else{
+            path.SetFillMode(FillModeAlternate);
+        }
+
+        path.AddArc(x, y, rx * 2, ry * 2, 180, 90);                     // Top-left corner
+        path.AddLine(x + rx, y, x + width - rx, y);                     // Top edge                 
+        path.AddArc(x + width - rx * 2, y, rx * 2, ry * 2, 270, 90);    // Top-right corner
+        path.AddLine(x + width, y + ry, x + width, y + height - ry);    // Right edge
+        path.AddArc(x + width - rx * 2, y + height - ry * 2, rx * 2, ry * 2, 0, 90);    // Bottom-right corner
+        path.AddLine(x + width - rx, y + height, x + rx, y + height);   // Bottom edge
+        path.AddArc(x, y + height - ry * 2, rx * 2, ry * 2, 90, 90);    // Bottom-left corner
+        path.AddLine(x, y + height - ry, x, y + ry);                    // Left edge
+
+        path.CloseFigure();
+        g->DrawPath(p, &path);
+
+        g->FillPath(b, &path);
+    }else{
+        if(obj->getColor().GetGradient() != ""){
+            FillRectGradient(R);
+        }
+        else{
+            g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+        }
+        g->DrawRectangle(p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
     }
-    else{
-        g->FillRectangle(b, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
-    }
-    g->DrawRectangle(p, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+
     Reset();
 }
 
@@ -535,39 +565,45 @@ void Drawer::DrawP(Shapes::Object* obj){
             cout << "Smooth Cubic Bezier (relative)\n";
         }
         else if (c == 'Q'){
-            Gdiplus::PointF Quad = {coor[0], coor[1]};
-            cur = {coor[2], coor[3]};
+            for (int j = 0; j < coor.size(); j++){
+                Gdiplus::PointF Quad = {coor[j], coor[j + 1]};
+                cur = {coor[j + 2], coor[j + 3]};
+                j += 3;
 
-            Gdiplus::PointF Control1 = pre;
-            Control1.X += 2 * (Quad.X - pre.X) / 3.0;
-            Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
+                Gdiplus::PointF Control1 = pre;
+                Control1.X += 2 * (Quad.X - pre.X) / 3.0;
+                Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            Gdiplus::PointF Control2 = cur;
-            Control2.X += 2 * (Quad.X - cur.X) / 3.0;
-            Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;            
+                Gdiplus::PointF Control2 = cur;
+                Control2.X += 2 * (Quad.X - cur.X) / 3.0;
+                Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;            
 
-            path.AddBezier(pre, Control1, Control2, cur);
+                path.AddBezier(pre, Control1, Control2, cur);
 
-            pre = cur;
-            preCurve = Control2;
+                pre = cur;
+                preCurve = Control2;
+            }
             cout << "Quadratic Bezier (absolute)\n";
         }
         else if (c == 'q'){
-            Gdiplus::PointF Quad = pre + Gdiplus::PointF(coor[0], coor[1]);
-            cur = pre + Gdiplus::PointF(coor[2], coor[3]);
+            for (int j = 0; j < coor.size(); j++){
+                Gdiplus::PointF Quad = pre + Gdiplus::PointF(coor[j], coor[j + 1]);
+                cur = pre + Gdiplus::PointF(coor[j + 2], coor[j + 3]);
+                j += 3;
+                
+                Gdiplus::PointF Control1 = pre;
+                Control1.X += 2 * (Quad.X - pre.X) / 3.0;
+                Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
 
-            Gdiplus::PointF Control1 = pre;
-            Control1.X += 2 * (Quad.X - pre.X) / 3.0;
-            Control1.Y += 2 * (Quad.Y - pre.Y) / 3.0;
+                Gdiplus::PointF Control2 = cur;
+                Control2.X += 2 * (Quad.X - cur.X) / 3.0;
+                Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
 
-            Gdiplus::PointF Control2 = cur;
-            Control2.X += 2 * (Quad.X - cur.X) / 3.0;
-            Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
+                path.AddBezier(pre, Control1, Control2, cur);
 
-            path.AddBezier(pre, Control1, Control2, cur);
-
-            preCurve = Control2;
-            pre = cur;
+                preCurve = Control2;
+                pre = cur;
+            }
 
             cout << "Quadratic Bezier (relative)\n";
         }

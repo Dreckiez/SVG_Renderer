@@ -23,6 +23,14 @@ void Reader::ReadRectangle(Shapes::Rectangle* rect, XMLElement* E) {
     if (h)
         rect->setHeight(ConvertUnit(h));
 
+    x = E->Attribute("rx");
+    y = E->Attribute("ry");
+    
+    if (x)
+        rect->setRx(ConvertUnit(x));
+    if (y)
+        rect->setRy(ConvertUnit(y));
+
     rect->SetAttribute(E);
 }
 
