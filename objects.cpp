@@ -3,7 +3,6 @@
 #include <string>
 #include <vector>
 #include <cstring>
-#include <sstream>
 #include <wchar.h>
 #include <windows.h>
 #include <gdiplus.h>
