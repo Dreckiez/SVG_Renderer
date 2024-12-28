@@ -90,6 +90,7 @@ namespace Shapes{
     private:
         Point A;
         float width, height;
+        float rx, ry;
     public:
         Rectangle();
         
@@ -102,7 +103,10 @@ namespace Shapes{
         void setHeight(float h);
         float getHeight();
         
-	    
+        void setRx(float rx);
+        void setRy(float ry);
+        float getRx();
+        float getRy();
     };
 
     class Line:public Object{

@@ -73,6 +73,7 @@ void Shapes::RGBA::SetRGB(string s){
     }
     else if (s.find('#') != string::npos){
         // Gradient format
+        cout << s << endl;
         if(s.find("url(#") != string::npos){
             int start = s.find("#") + 1, end = s.size() - 1;
             gradient_name = s.substr(start, end - start);
@@ -88,6 +89,7 @@ void Shapes::RGBA::SetRGB(string s){
             red = stoi(s.substr(1,2), nullptr, 16);
             green = stoi(s.substr(3,2), nullptr, 16);
             blue = stoi(s.substr(5,2), nullptr, 16);
+            cout << red << " " << green << " " << blue << endl;
         }
     }
     else if (namedColors.find(s) != namedColors.end()){
@@ -193,18 +195,22 @@ void Shapes::Object::CopyAttribute(const Object &other){
 void Shapes::Object::SetStyle(string s){
     removeSpareSpaces(s);
     string type;
+    string temp = "";
+    float opacity = 0;
     stringstream ss(s);
     while(!ss.eof()){
         getline(ss, type, ':');
         if(type == "fill"){
-            string C;
-            getline(ss, C, ';');
-            color.SetRGB(C);
+            getline(ss, temp, ';');
+            color.SetRGB(temp);
         }
         else if(type == "stroke"){
-            string S;
-            getline(ss, S, ';');
-            stroke.SetRGB(S);
+            getline(ss, temp, ';');
+            stroke.SetRGB(temp);
+        }else if(type == "opacity"){
+            getline(ss, temp, ';');
+            color.SetAlpha(stof(temp));
+            stroke.SetAlpha(stof(temp));
         }
     }
 }
@@ -413,6 +419,22 @@ float Shapes::Rectangle::getWidth(){
 
 float Shapes::Rectangle::getHeight(){
     return height;
+}
+
+void Shapes::Rectangle::setRx(float rx){
+    this->rx = rx;
+}
+
+void Shapes::Rectangle::setRy(float ry){
+    this->ry = ry;
+}
+
+float Shapes::Rectangle::getRx(){
+    return rx;
+}
+
+float Shapes::Rectangle::getRy(){
+    return ry;
 }
 
 
