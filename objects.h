@@ -5,6 +5,7 @@
 #include <vector>
 #include <windows.h>
 #include <gdiplus.h>
+#include <sstream>
 #include <cmath>
 #include "tinyxml2.h"
 #include <memory>

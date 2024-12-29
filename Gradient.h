@@ -4,12 +4,13 @@
 #include "objects.h"
 
 class Gradient{
-private:
+protected:
     string id;
     Shapes::Point start;
-    float stops[50];
+    double stops[50];
     Gdiplus::Color colors[50];
     int amount;
+    string Transform;
 public:
     Gradient();
     Gradient(string I, Shapes::Point S);
@@ -19,9 +20,10 @@ public:
     string& get_id();
     void set_start(Shapes::Point p);
     void set_id(std::string str);
-    float* get_stops();
+    double* get_stops();
     Gdiplus::Color* get_colors();
     void virtual read(XMLElement* gradientElem) = 0;
+    void setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor);
 };
 
 class LinearGradient : public Gradient{

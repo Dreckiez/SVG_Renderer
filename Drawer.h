@@ -17,7 +17,7 @@ private:
     Gdiplus::PointF anchor;
     Gdiplus::Pen* p;
     SolidBrush* b;
-    LinearGradientBrush* gb;
+    Gdiplus::LinearGradientBrush* gb;
     Gdiplus::Matrix Ma;
     GradientVector gradientList;
     ViewBox VB;
@@ -38,16 +38,16 @@ public:
     void FillEllipseGradient(Shapes::Ellipse* E);
 
     void DrawPG(Shapes::Object* obj);
-    void FillPGGradient(Shapes::Polygon* PG,  Gdiplus::GraphicsPath* path);
+    void FillPGGradient(Gdiplus::GraphicsPath* path);
 
     void DrawPL(Shapes::Object* obj);
-    void FillPLGradient(Shapes::Polyline* PL, vector <Gdiplus::PointF> pF);
+    void FillPLGradient(vector <Gdiplus::PointF> pF);
 
     void DrawT(Shapes::Object* obj);
-    void FillTextGradient(Shapes::Text* T, Gdiplus::GraphicsPath* text);
+    void FillTextGradient(Gdiplus::GraphicsPath* text);
 
     void DrawP(Shapes::Object* obj);
-    void FillPGradient(Shapes::Path* P, Gdiplus::GraphicsPath* path);
+    void FillPGradient(Gdiplus::GraphicsPath* path);
 
     void DrawG(Shapes::Object* obj);
     void Draw();

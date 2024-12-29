@@ -49,7 +49,9 @@ void Drawer::setDrawer(Shapes::Object* obj){
     p->SetColor(Gdiplus::Color(obj->getStroke().GetAlpha()*255, obj->getStroke().GetRed(), obj->getStroke().GetGreen(), obj->getStroke().GetBlue()));
     p->SetWidth(obj->getStrokeWidth() * s);
     b->SetColor(Gdiplus::Color(obj->getColor().GetAlpha()*255, obj->getColor().GetRed(), obj->getColor().GetGreen(), obj->getColor().GetBlue()));
-
+    if(obj->getColor().GetGradient() != ""){
+        setGradientBrush(obj->getColor().GetGradient(), obj->getColor().GetAlpha());
+    }
     p->SetMiterLimit(obj->getStrokeMiterLimit());
 }
 
@@ -70,61 +72,60 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     VP = vp;
 }
 
+void addStops(int& stops_amount, LinearGradient* LG, float alpha, Gdiplus::Color color_array[50], float stop_array[50]){
+    int idx = 0;
+    for(int i = 0; i < stops_amount; i++){
+        float opacity = alpha * ((float)LG->get_colors()[idx].GetAlpha());
+        if(i == 0){
+            Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
+            color_array[i] = c;
+            stop_array[i] = 0;
+            i++;
+            stops_amount++;
+        }
+
+        if(opacity < 50 && idx != 0){
+            Gdiplus::Color backup(alpha * ((LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2),  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
+            color_array[i] = backup;
+            stop_array[i] = (LG->get_stops()[idx] - ((LG->get_stops()[idx] - LG->get_stops()[idx-1]) / 2) + 3)/7;
+            i++;
+            stops_amount++;
+        }
+        Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
+        color_array[i] = c;
+        stop_array[i] = (LG->get_stops()[idx]+ 3) / 7;
+        
+        if(opacity  < 50 && idx < LG->get_amount() - 1){
+            i++;
+            Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx+1].GetAlpha())/2,  LG->get_colors()[idx+1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx+1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx+1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
+            color_array[i] = backup;
+            stop_array[i] = (LG->get_stops()[idx] + ((LG->get_stops()[idx+1] - LG->get_stops()[idx]) / 2) + 3) / 7;
+            stops_amount++;
+        }
+
+        if(i == stops_amount - 1){
+            i++;
+            Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2,  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
+            color_array[i] = backup;
+            stop_array[i] = 1;
+            stops_amount++;
+        }
+        idx++;
+    }
+}
+
 void Drawer::setGradientBrush(string r, float alpha){
-    int default_opacity = 100;
+    Gdiplus::Color color_array[50];
+    float stop_array[50];
     for(int i = 0; i < gradientList.get_content().size(); i++){
         if(r == gradientList.get_content()[i]->get_id()){
-            Gdiplus::Color color_array[50];
-            float stop_array[50];
             LinearGradient* LG = dynamic_cast<LinearGradient*> (gradientList.get_content()[i]);
+            Gdiplus::PointF p1(((float)(LG->get_start().GetX() + LG->get_end().GetX()) / 2 - 3.5*(LG->get_end().GetX() - LG->get_start().GetX())) * s, ((float)(LG->get_start().GetY() + LG->get_end().GetY()) / 2 - 3.5*(LG->get_end().GetY() - LG->get_start().GetY())) * s);
+            Gdiplus::PointF p2(((float)(LG->get_start().GetX() + LG->get_end().GetX()) / 2 + 3.5*(LG->get_end().GetX() - LG->get_start().GetX())) * s, ((float)(LG->get_start().GetY() + LG->get_end().GetY()) / 2 + 3.5*(LG->get_end().GetY() - LG->get_start().GetY())) * s);
+            gb = new Gdiplus::LinearGradientBrush(p1, p2, LG->get_colors()[0], LG->get_colors()[LG->get_amount()-1]);
+            LG->setTransform(gb, s, anchor);
             int stops_amount = LG->get_amount();
-            // Gdiplus::PointF p1(LG->get_start().GetX() * s, LG->get_start().GetY() * s);
-            // Gdiplus::PointF p2(LG->get_end().GetX() * s, LG->get_end().GetY() * s);
-            Gdiplus::PointF p1(((float)(LG->get_start().GetX() + LG->get_end().GetX()) / 2 - (LG->get_end().GetX() - LG->get_start().GetX())) * s, ((float)(LG->get_start().GetY() + LG->get_end().GetY()) / 2 - (LG->get_end().GetY() - LG->get_start().GetY())) * s);
-            Gdiplus::PointF p2(((float)(LG->get_start().GetX() + LG->get_end().GetX()) / 2 + (LG->get_end().GetX() - LG->get_start().GetX())) * s, ((float)(LG->get_start().GetY() + LG->get_end().GetY()) / 2 + (LG->get_end().GetY() - LG->get_start().GetY())) * s);
-            gb = new Gdiplus::LinearGradientBrush(p1, p2, LG->get_colors()[0], LG->get_colors()[LG->get_amount()]);
-            int idx = 0;
-            for(int i = 0; i < stops_amount; i++){
-                float opacity = alpha * ((float)LG->get_colors()[idx].GetAlpha());
-                if(i == 0){
-                    Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
-                    color_array[i] = c;
-                    stop_array[i] = 0;
-                    i++;
-                    stops_amount++;
-                }
-
-                if(opacity < 50 && idx != 0){
-                    Gdiplus::Color backup(alpha * ((LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2),  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
-                    color_array[i] = backup;
-                    stop_array[i] = LG->get_stops()[idx] - ((LG->get_stops()[idx] - LG->get_stops()[idx-1]) / 2);
-                    i++;
-                    stops_amount++;
-                    cout << alpha * ((LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2) << "a\n";
-                }
-                Gdiplus::Color c(opacity, LG->get_colors()[idx].GetRed(), LG->get_colors()[idx].GetGreen(), LG->get_colors()[idx].GetBlue());
-                color_array[i] = c;
-                stop_array[i] = (LG->get_stops()[idx]*2 + 1) / 4;
-                cout << endl << (int)color_array[i].GetAlpha() << " " << stop_array[i] << endl;
-                
-                if(opacity  < 50 && idx < LG->get_amount() - 1){
-                    i++;
-                    Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx+1].GetAlpha())/2,  LG->get_colors()[idx+1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx+1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx+1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
-                    color_array[i] = backup;
-                    stop_array[i] = (LG->get_stops()[idx] + ((LG->get_stops()[idx+1] - LG->get_stops()[idx]) / 2) + 1) / 3;
-                    cout << "b\n";
-                    stops_amount++;
-                }
-
-                if(i == stops_amount - 1){
-                    i++;
-                    Gdiplus::Color backup(alpha * (LG->get_colors()[idx].GetAlpha() + LG->get_colors()[idx-1].GetAlpha())/2,  LG->get_colors()[idx-1].GetRed()*0.5 + LG->get_colors()[idx].GetRed()*0.5, LG->get_colors()[idx-1].GetGreen()*0.5 + LG->get_colors()[idx].GetGreen()*0.5, LG->get_colors()[idx-1].GetBlue()*0.5 + LG->get_colors()[idx].GetBlue()*0.5);
-                    color_array[i] = backup;
-                    stop_array[i] = 1;
-                    stops_amount++;
-                }
-                idx++;
-            }
+            addStops(stops_amount, LG, alpha, color_array, stop_array);
             gb->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
             gb->SetInterpolationColors(color_array, stop_array, stops_amount);
             break;
@@ -133,8 +134,8 @@ void Drawer::setGradientBrush(string r, float alpha){
 }
 
 void Drawer::FillRectGradient(Shapes::Rectangle* R){
-    setGradientBrush(R->getColor().GetGradient(), R->getColor().GetAlpha());
     g->FillRectangle(gb, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+    gb->ResetTransform();
     delete gb;
 }
 
@@ -192,7 +193,6 @@ void Drawer::DrawL(Shapes::Object* obj){
 }
 
 void Drawer::FillCircleGradient(Shapes::Circle* C){
-    setGradientBrush(C->getColor().GetGradient(), C->getColor().GetAlpha());
     g->FillEllipse(gb, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
     delete gb;
 }
@@ -208,7 +208,6 @@ void Drawer::DrawC(Shapes::Object* obj){
 }
 
  void Drawer::FillEllipseGradient(Shapes::Ellipse* E){
-    setGradientBrush(E->getColor().GetGradient(), E->getColor().GetAlpha());
     g->FillEllipse(gb, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
     delete gb;
  }
@@ -223,8 +222,7 @@ void Drawer::DrawE(Shapes::Object* obj){
     Reset();
 }
 
-void Drawer::FillPGGradient(Shapes::Polygon* PG, Gdiplus::GraphicsPath* path){
-    setGradientBrush(PG->getColor().GetGradient(), PG->getColor().GetAlpha());
+void Drawer::FillPGGradient(Gdiplus::GraphicsPath* path){
     g->FillPath(gb, path);
     delete gb;
 }
@@ -245,14 +243,13 @@ void Drawer::DrawPG(Shapes::Object* obj){
         path.SetFillMode(FillModeAlternate);
     }
     path.AddPolygon(list.data(), PG->getPoints().size());
-    if(PG->getColor().GetGradient() != "")  FillPGGradient(PG, &path);
+    if(PG->getColor().GetGradient() != "")  FillPGGradient(&path);
     else   g->FillPath(b, &path);
     g->DrawPath(p, &path);
     Reset();
 }
 
-void Drawer::FillPLGradient(Shapes::Polyline* PL, vector <Gdiplus::PointF> pF){
-    setGradientBrush(PL->getColor().GetGradient(), PL->getColor().GetAlpha());
+void Drawer::FillPLGradient(vector <Gdiplus::PointF> pF){
     g->FillPolygon(gb, pF.data(), static_cast<int> (pF.size()));
     delete gb;
 }
@@ -267,14 +264,13 @@ void Drawer::DrawPL(Shapes::Object* obj){
         pF.push_back({PL->getPoints()[i].GetX() * s, PL->getPoints()[i].GetY() * s});
     }
 
-    if(PL->getColor().GetGradient() != "") FillPLGradient(PL, pF);
+    if(PL->getColor().GetGradient() != "") FillPLGradient(pF);
     else    g->FillPolygon(b, pF.data(), static_cast<int> (pF.size()));
     g->DrawLines(p, pF.data(), static_cast<int>(pF.size()));
     Reset();
 }
 
-void Drawer::FillTextGradient(Shapes::Text* T, Gdiplus::GraphicsPath* text){
-    setGradientBrush(T->getColor().GetGradient(), T->getColor().GetAlpha());
+void Drawer::FillTextGradient(Gdiplus::GraphicsPath* text){
     g->FillPath(gb, text);
     delete gb;
 }
@@ -362,15 +358,14 @@ void Drawer::DrawT(Shapes::Object* obj){
     text.CloseFigure();
 
     g->DrawPath(p, &text);
-    if(T->getColor().GetGradient() != "")   FillTextGradient(T, &text);
+    if(T->getColor().GetGradient() != "")   FillTextGradient(&text);
     else    g->FillPath(b, &text);
     Reset();
 
     delete ff;
 }
 
-void Drawer::FillPGradient(Shapes::Path* P, Gdiplus::GraphicsPath* path){
-    setGradientBrush(P->getColor().GetGradient(), P->getColor().GetAlpha());
+void Drawer::FillPGradient(Gdiplus::GraphicsPath* path){
     g->FillPath(gb, path);
     delete gb;
 }
@@ -666,7 +661,7 @@ void Drawer::DrawP(Shapes::Object* obj){
     }
     char end = cmd.back().getCmd();
     g->DrawPath(p, &path);
-    if(P->getColor().GetGradient() != "")   FillPGradient(P, &path);
+    if(P->getColor().GetGradient() != "")   FillPGradient(&path);
     else    g->FillPath(b, &path);
     Reset();
 }

@@ -32,7 +32,7 @@ void LinearGradient::set_end(Shapes::Point p){
     end.SetPoint(p.GetX(), p.GetY());
 }
 
-float* Gradient::get_stops(){
+double* Gradient::get_stops(){
     return stops;
 }
 
@@ -72,6 +72,9 @@ void LinearGradient::read(XMLElement* gradientElem){
         Shapes::Point s(0,0), e(screenWidth,0);
         set_start(s);
         set_end(e);
+    }
+    if(gradientElem->Attribute("gradientTransform")){
+        Transform = (gradientElem->Attribute("gradientTransform"));
     }
     idx = 0;
     // Read all <stop> elements
@@ -124,6 +127,9 @@ void RadialGradient::read(XMLElement* gradientElem){
     }
     else{
         radius = 0;
+    }
+    if(gradientElem->Attribute("gradientTransform")){
+        Transform = (gradientElem->Attribute("gradientTransform"));
     }
     Shapes::Point s(x1,y1);
     set_start(s);
@@ -187,4 +193,64 @@ void GradientVector::clear(){
         delete content[i];
     }
     content.clear();
+}
+
+void Gradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor){
+    string type, para;
+    float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
+    stringstream ss(Transform);
+    while(getline(ss, type, '(')){
+        if(type == "translate"){
+            getline(ss, para, ')');
+            int size = para.length();
+            string number_string;
+            for(int i = 0; i < size; i++){
+                if(para[i] != ',' && para[i] != ' '){
+                    number_string += para[i];
+                }
+                else if(translate_x == 0){
+                    translate_x = stof(number_string);
+                    number_string = "";
+                    if(para[i+1] == ' ' || para[i+1] == ','){
+                        i++;
+                    }
+                }
+                if(i == size-1){
+                    translate_y = stof(number_string);
+                }
+            }
+            getline(ss, para, ' ');
+            translate_x*=s;
+            translate_y*=s;
+            gb->TranslateTransform(-translate_x/3.3, -translate_y/3.3);
+            translate_x = 0;
+            translate_y = 0;
+        }
+        else if(type == "scale"){
+            string temp;
+            getline(ss, temp, ')');
+            stringstream scale_stream(temp);
+            if (temp.find(',') != std::string::npos){
+                getline(scale_stream, para, ',');
+                scale_x = atof(para.c_str());
+                getline(scale_stream, para, ')');
+                scale_y = atof(para.c_str());
+                getline(ss, para, ' ');
+            }
+            else{
+                getline(scale_stream, para, ')');
+                scale_x = atof(para.c_str());
+                scale_y = atof(para.c_str());
+                getline(ss, para, ' ');
+            }
+            gb->ScaleTransform(scale_x, scale_y);
+        }
+        else if(type == "rotate"){
+            getline(ss, para, ')');
+            rotate = atof(para.c_str());
+            float radian = rotate * 3.1415926 / (float)180;
+            getline(ss, para, ' ');
+            gb->RotateTranform(rotate);
+        }
+    }
 }
