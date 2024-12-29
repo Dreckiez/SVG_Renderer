@@ -12,6 +12,8 @@ using namespace std;
 
 void addSpaces(string &s);
 
+void replaceCharWithSpaces(string &s, char c);
+
 void removeSpareSpaces(string &s);
 
 void toLowerCase(string &s);

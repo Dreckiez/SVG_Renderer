@@ -72,7 +72,6 @@ void Shapes::RGBA::SetRGB(string s){
     }
     else if (s.find('#') != string::npos){
         // Gradient format
-        cout << s << endl;
         if(s.find("url(#") != string::npos){
             int start = s.find("#") + 1, end = s.size() - 1;
             gradient_name = s.substr(start, end - start);
@@ -191,35 +190,11 @@ void Shapes::Object::CopyAttribute(const Object &other){
     Transform = other.Transform;
 }
 
-void Shapes::Object::SetStyle(string s){
-    removeSpareSpaces(s);
-    string type;
-    string temp = "";
-    float opacity = 0;
-    stringstream ss(s);
-    while(!ss.eof()){
-        getline(ss, type, ':');
-        if(type == "fill"){
-            getline(ss, temp, ';');
-            color.SetRGB(temp);
-        }
-        else if(type == "stroke"){
-            getline(ss, temp, ';');
-            stroke.SetRGB(temp);
-        }else if(type == "opacity"){
-            getline(ss, temp, ';');
-            color.SetAlpha(stof(temp));
-            stroke.SetAlpha(stof(temp));
-        }
-    }
-}
-
 void Shapes::Object::SetAttribute(XMLElement* E){
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
-    const char* Style = E->Attribute("style");
-
+    
     if (T != nullptr) setTransformString(T);
 
     const char* check = E->Attribute("fill-opacity");
@@ -236,6 +211,7 @@ void Shapes::Object::SetAttribute(XMLElement* E){
 
     if (C != nullptr){
         string temp = C;
+        SetColorAlpha(1);
         toLowerCase(temp);
         SetColor(temp);
     }
@@ -243,13 +219,10 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     if (S != nullptr){
         string temp = S;
         toLowerCase(temp);
+        SetStrokeAlpha(1);
         SetStroke(S);
     }
     
-    if(Style != nullptr){
-        SetStyle(Style);
-    }
-
     const char* FR = E->Attribute("fill-rule");
     if (FR){
         SetFillRule(FR);

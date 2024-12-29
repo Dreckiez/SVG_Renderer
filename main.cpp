@@ -100,8 +100,14 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             tinyxml2::XMLElement* def = doc.FirstChildElement("svg")->FirstChildElement("defs");
             if(def){
                 LV.read_gradient(def);
+                for (tinyxml2::XMLElement* root = def->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
+                    string name = root->Name();
+                    if (name == "style"){
+                        reader.ReadStyle(root);
+                    }
+                }
             }
-
+            
             ViewBox VB;
             if (doc.FirstChildElement("svg")->Attribute("viewBox")){
                 VB.ReadViewBox(doc.FirstChildElement("svg"));
@@ -119,7 +125,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                 Gdiplus::RectF VP_area(0, 0, screen.right, screen.bottom);
                 graphics.SetClip(VP_area);
             }
-
 
             for (tinyxml2::XMLElement* root = doc.FirstChildElement()->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                 string name = root->Name();
@@ -160,7 +165,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     list.push_back(std::move(ptr));
                 }
                 else if (name == "path"){
-                    cout << "path";
                     unique_ptr<Shapes::Object> ptr = make_unique<Shapes::Path>();
                     reader.ReadPath(dynamic_cast<Shapes::Path*>(ptr.get()), root);
                     list.push_back(std::move(ptr));

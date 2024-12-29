@@ -9,7 +9,6 @@
 #include <cmath>
 #include "tinyxml2.h"
 #include <memory>
-
 #include "General.h"
 
 using namespace std;
@@ -67,7 +66,6 @@ namespace Shapes{
 
         void SetColor(string s);
         void SetStroke(string s);
-        void SetStyle(string s);
         void SetColorAlpha(float alpha);
         void SetStrokeAlpha(float alpha);
 
