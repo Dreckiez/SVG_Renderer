@@ -395,6 +395,7 @@ void Drawer::DrawP(Shapes::Object* obj){
     Gdiplus::PointF cur(0,0);     //current position of pen
     Gdiplus::PointF pre(0,0);     // 1 point before cur. cur will be updated first then AddLine or watever before updating pre
     Gdiplus::PointF preCurve(0,0);    //previous control point, used and updated when handle command curve, quaratic,...
+    Gdiplus::PointF pathStart(0,0);
 
     for (int i = 0; i < size; i++){
         char c = cmd[i].getCmd();
@@ -402,10 +403,10 @@ void Drawer::DrawP(Shapes::Object* obj){
         vector<float> coor = cmd[i].getNums();
 
         int pSize = coor.size();
-        for (int i = 0; i < pSize; i++){
-            coor[i] *= s;
+        for (int j = 0; j < pSize; j++){
+            coor[j] *= s;
         }
-
+        cout << i << endl;
         if (c == 'M' || c == 'm'){
             
             path.StartFigure();
@@ -421,6 +422,7 @@ void Drawer::DrawP(Shapes::Object* obj){
             else {
                 pre = PointF(coor.front(), coor[1]) + pre;
                 if (pSize > 2){
+                    cout << "line\n";
                     for (int j = 0; j < pSize - 3; j += 2){
                         path.AddLine(pre, (PointF (coor[j + 2], coor[j + 3]) + pre));
                         pre = pre + PointF (coor[j + 2], coor[j + 3]);
@@ -428,6 +430,9 @@ void Drawer::DrawP(Shapes::Object* obj){
                 }
                 cur = pre;
                 cout << "Move (relatively)\n";
+            }
+            if (i == 0 || cmd[i - 1].getCmd() == 'Z' || cmd[i - 1].getCmd() == 'z'){
+                pathStart = cur;
             }
         }
         else if (c == 'L' || c == 'l'){
@@ -471,7 +476,7 @@ void Drawer::DrawP(Shapes::Object* obj){
                 cout << "Horizontal Line (relative)\n";
             }
         }
-        else if (c == 'V' || c == 'v'){
+        else if (c == 'V' || c == 'v'){           
             cur.Y = coor.front();
             cur.X = pre.X;
             if (c == 'V'){
@@ -483,7 +488,6 @@ void Drawer::DrawP(Shapes::Object* obj){
                 cur.Y = cur.Y + pre.Y;
                 path.AddLine(pre, cur);
                 pre = cur;
-
                 cout << "Vertical (relative)\n";
             }
         }
@@ -600,7 +604,7 @@ void Drawer::DrawP(Shapes::Object* obj){
                 Control2.Y += 2 * (Quad.Y - cur.Y) / 3.0;
 
                 path.AddBezier(pre, Control1, Control2, cur);
-
+                
                 preCurve = Control2;
                 pre = cur;
             }
@@ -647,20 +651,21 @@ void Drawer::DrawP(Shapes::Object* obj){
         }else if (c == 'A' || c == 'a'){
             
             if (c == 'A'){
-                for (int i = 0; i < pSize; i += 7){
-                    AddSvgArcToPath(path, pre.X, pre.Y, coor[i + 5], coor[i + 6], coor[i], coor[i + 1], coor[i + 2], int(coor[i + 3]), int(coor[i  +4]));
-                    pre = {coor[i + 5], coor[i + 6]};
+                for (int j = 0; j < pSize; j += 7){
+                    AddSvgArcToPath(path, pre.X, pre.Y, coor[j + 5], coor[j + 6], coor[j], coor[j + 1], coor[j + 2], int(coor[j + 3]), int(coor[j  +4]));
+                    pre = {coor[j + 5], coor[j + 6]};
                 }
             }else{
-                for (int i = 0; i < pSize; i += 7){
-                    AddSvgArcToPath(path, pre.X, pre.Y, coor[i + 5] + pre.X, coor[i + 6] + pre.Y, coor[i], coor[i + 1], coor[i + 2], int(coor[i + 3]), int(coor[i  +4]));
-                    pre = {coor[i + 5] + pre.X, coor[i + 6] + pre.Y};
+                for (int j = 0; j < pSize; j += 7){
+                    AddSvgArcToPath(path, pre.X, pre.Y, coor[j + 5] + pre.X, coor[j + 6] + pre.Y, coor[j], coor[j + 1], coor[j + 2], int(coor[j + 3]), int(coor[j  +4]));
+                    pre = {coor[j + 5] + pre.X, coor[j + 6] + pre.Y};
                 }
             }
             cur = pre;
         }
         else if (c == 'Z' || c == 'z'){
             path.CloseFigure();
+            pre = cur = pathStart;
             cout << "Close\n";
         }
     }
@@ -673,6 +678,7 @@ void Drawer::DrawP(Shapes::Object* obj){
 
 void Drawer::DrawG(Shapes::Object* obj){
     Shapes::Group* G = dynamic_cast<Shapes::Group*>(obj);
+    int count = 0;
 
     for (int i = 0; i < G->GetSize(); i++){
         if(dynamic_cast <Shapes::Rectangle*> (G->GetShape(i))){
@@ -697,12 +703,14 @@ void Drawer::DrawG(Shapes::Object* obj){
             DrawT(G->GetShape(i));
         }else if(dynamic_cast <Shapes::Path*> (G->GetShape(i))){
             DrawP(G->GetShape(i));
+            count++;
         }
         else if (dynamic_cast<Shapes::Group*> (G->GetShape(i))){
             DrawG(G->GetShape(i));
         }
     }
     Reset();
+    cout << "count: " << count << endl;
 }
 
 void Drawer::Draw(){
@@ -730,9 +738,11 @@ void Drawer::Draw(){
             DrawT(rawPtr);
         }else if(dynamic_cast <Shapes::Path*> (rawPtr)){
             DrawP(rawPtr);
+            cout << 1 << endl;
         }
         else if (dynamic_cast<Shapes::Group*> (rawPtr)){
             DrawG(rawPtr);
+            cout << 2 << endl;
         }
     }
 }
