@@ -107,7 +107,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     }
                 }
             }
-            
             ViewBox VB;
             if (doc.FirstChildElement("svg")->Attribute("viewBox")){
                 VB.ReadViewBox(doc.FirstChildElement("svg"));
