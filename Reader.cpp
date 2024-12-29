@@ -75,7 +75,6 @@ void Reader::SetObjectStyle(Shapes::Object* obj, XMLElement* E){
             int count = 0;
             for (int j = 0; j < st.getName().size(); j++){
                 for (int k = 0; k < name.size(); k++){
-                    cout <<st.getName().size()<<" "<< name[k] << " " << st.getName()[j] << endl;
                     if (name[k] == st.getName()[j]){
                         count++;
                         break;
@@ -92,10 +91,8 @@ void Reader::SetObjectStyle(Shapes::Object* obj, XMLElement* E){
 
     if(Sty != nullptr){
         Style sty;
-        sty.setStyle(Sty);
-        obj->CopyAttribute(sty.getStyle());
+        sty.setObjectStyle(Sty, obj);
     }
-
 }
 
 void Reader::ReadStyle(XMLElement *E){

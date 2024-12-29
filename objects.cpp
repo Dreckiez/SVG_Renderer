@@ -87,7 +87,6 @@ void Shapes::RGBA::SetRGB(string s){
             red = stoi(s.substr(1,2), nullptr, 16);
             green = stoi(s.substr(3,2), nullptr, 16);
             blue = stoi(s.substr(5,2), nullptr, 16);
-            cout << red << " " << green << " " << blue << endl;
         }
     }
     else if (namedColors.find(s) != namedColors.end()){
@@ -366,6 +365,7 @@ Shapes::Line::Line(){
 Shapes::Rectangle::Rectangle(){
     height = 0;
     width = 0;
+    rx = ry = 0;
     cout << "Rectangle constructed\n";
 }
 

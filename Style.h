@@ -21,6 +21,8 @@ public:
     void addName(string name);
     vector<string> getName();
 
+    void setObjectStyle(string s, Shapes::Object* obj);
+
     // void setType(string type);  //General, Shared and Specific
     // string getType();
 };

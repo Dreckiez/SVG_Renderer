@@ -23,6 +23,29 @@ void Style::setStyle(string s){
     }
 }
 
+void Style::setObjectStyle(string s, Shapes::Object* obj){
+    removeSpareSpaces(s);
+    string type;
+    string temp = "";
+    float opacity = 0;
+    stringstream ss(s);
+    while(!ss.eof()){
+        getline(ss, type, ':');
+        if(type == "fill"){
+            getline(ss, temp, ';');
+            obj->SetColor(temp);
+        }
+        else if(type == "stroke"){
+            getline(ss, temp, ';');
+            obj->SetStroke(temp);
+        }else if(type == "opacity"){
+            getline(ss, temp, ';');
+            obj->SetColorAlpha(stof(temp));
+            obj->SetStrokeAlpha(stof(temp));
+        }
+    }
+}
+
 Shapes::Object Style::getStyle(){
     return style;
 }
