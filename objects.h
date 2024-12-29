@@ -58,6 +58,7 @@ namespace Shapes{
         int stroke_miterlimit;
         string Transform;
         string fillRule;
+        Gdiplus::GraphicsPath path;
     public:
         Object();
         virtual ~Object() = default;
@@ -70,9 +71,11 @@ namespace Shapes{
         void SetStyle(string s);
         void SetColorAlpha(float alpha);
         void SetStrokeAlpha(float alpha);
+        void setPath(Gdiplus::GraphicsPath* p2);
 
         void SetFillRule(string s);
         string getFillRule();
+        Gdiplus::GraphicsPath& getPath();
 
         Shapes::RGBA getColor();
         Shapes::RGBA getStroke();

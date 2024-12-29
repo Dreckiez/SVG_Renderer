@@ -101,7 +101,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             if(def){
                 LV.read_gradient(def);
             }
-
             ViewBox VB;
             if (doc.FirstChildElement("svg")->Attribute("viewBox")){
                 VB.ReadViewBox(doc.FirstChildElement("svg"));
