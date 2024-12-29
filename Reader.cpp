@@ -1,8 +1,120 @@
 #include "Reader.h"
 
-
 Reader::Reader() {
     cout << "Reader constructed\n";
+}
+
+void Reader::SetGeneralStyle(Shapes::Object* obj){
+    vector<Style> gen = style.getGeneralStyle();
+    if (dynamic_cast<Shapes::Rectangle*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "rect"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }else if (dynamic_cast<Shapes::Circle*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "circle"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }else if (dynamic_cast<Shapes::Ellipse*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "ellipse"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }else if (dynamic_cast<Shapes::Line*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "line"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }else if (dynamic_cast<Shapes::Polyline*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "polyline"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }else if (dynamic_cast<Shapes::Polygon*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "polygon"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }else if (dynamic_cast<Shapes::Path*>(obj)){
+        for (int i = 0; i < gen.size(); i++){
+            vector<string> name = gen[i].getName();
+            if (name[0] == "path"){
+                obj->CopyAttribute(gen[i].getStyle());
+            }
+        }
+    }
+}
+
+void Reader::SetObjectStyle(Shapes::Object* obj, XMLElement* E){
+    const char* C = E->Attribute("class");
+    if (C){
+        stringstream ss(C);
+        vector<string> name;
+        string temp;
+        while (ss >> temp){
+            name.push_back(temp);
+        }
+
+        vector<Style> Shared = style.getSharedStyle();
+        
+        for (int i = 0; i < Shared.size(); i++){
+            Style st = Shared[i];
+            int count = 0;
+            for (int j = 0; j < st.getName().size(); j++){
+                for (int k = 0; k < name.size(); k++){
+                    cout <<st.getName().size()<<" "<< name[k] << " " << st.getName()[j] << endl;
+                    if (name[k] == st.getName()[j]){
+                        count++;
+                        break;
+                    }
+                }
+                if (count == st.getName().size()){
+                    obj->CopyAttribute(Shared[i].getStyle());
+                    return;
+                }
+            }
+        }
+    }
+    const char* Sty = E->Attribute("style");
+
+    if(Sty != nullptr){
+        Style sty;
+        sty.setStyle(Sty);
+        obj->CopyAttribute(sty.getStyle());
+    }
+
+}
+
+void Reader::ReadStyle(XMLElement *E){
+    const char* S = E->GetText();
+    string s(S);
+
+    removeSpareSpaces(s);
+    for (int i = 0; i < s.size() - 1; i++){
+        if (s[i] == '.' && s[i + 1] == ' ')
+            s.erase(i + 1, 1);
+    }
+    //cout << s << endl;
+
+    stringstream ss(s);
+    
+    while (getline(ss, s, '}')){
+        style.addStyle(s);
+    }
+
 }
 
 void Reader::ReadRectangle(Shapes::Rectangle* rect, XMLElement* E) {
@@ -23,6 +135,16 @@ void Reader::ReadRectangle(Shapes::Rectangle* rect, XMLElement* E) {
     if (h)
         rect->setHeight(ConvertUnit(h));
 
+    x = E->Attribute("rx");
+    y = E->Attribute("ry");
+    
+    if (x)
+        rect->setRx(ConvertUnit(x));
+    if (y)
+        rect->setRy(ConvertUnit(y));
+
+    SetGeneralStyle(rect);
+    SetObjectStyle(rect, E);
     rect->SetAttribute(E);
 }
 
@@ -45,6 +167,8 @@ void Reader::ReadLine(Shapes::Line* line, XMLElement* E) {
         end.SetY(ConvertUnit(y2));
     line->setEnd(end);
 
+    SetGeneralStyle(line);
+    SetObjectStyle(line, E);
     line->SetAttribute(E);
 }
 
@@ -63,6 +187,8 @@ void Reader::ReadCircle(Shapes::Circle* circle, XMLElement* E) {
     if (r)
         circle->setRadius(ConvertUnit(r));
 
+    SetGeneralStyle(circle);
+    SetObjectStyle(circle, E);
     circle->SetAttribute(E);
 }
 
@@ -84,6 +210,8 @@ void Reader::ReadEllipse(Shapes::Ellipse* ellipse, XMLElement* E) {
     if (ry)
         ellipse->setRadiusY(ConvertUnit(ry));
 
+    SetGeneralStyle(ellipse);
+    SetObjectStyle(ellipse, E);
     ellipse->SetAttribute(E);
 }
 
@@ -106,6 +234,8 @@ void Reader::ReadPolygon(Shapes::Polygon* polygon, XMLElement* E) {
     }
     polygon->setPoints(points);
 
+    SetGeneralStyle(polygon);
+    SetObjectStyle(polygon, E);
     polygon->SetAttribute(E);
 }
 
@@ -128,6 +258,8 @@ void Reader::ReadPolyline(Shapes::Polyline* polyline, XMLElement* E) {
     }
     polyline->setPoints(points);
 
+    SetGeneralStyle(polyline);
+    SetObjectStyle(polyline, E);
     polyline->SetAttribute(E);
 }
 
@@ -199,6 +331,8 @@ void Reader::ReadText(Shapes::Text* text, XMLElement* E) {
         text->setText(textStr);
     }
 
+    SetGeneralStyle(text);
+    SetObjectStyle(text, E);
     text->SetAttribute(E);
 
 }
@@ -252,6 +386,8 @@ void Reader::ReadPath(Shapes::Path* path, XMLElement *E){
         path->add(cmd);
     }
 
+    SetGeneralStyle(path);
+    SetObjectStyle(path, E);
     path->SetAttribute(E);
 }
 

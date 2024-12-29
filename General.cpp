@@ -11,6 +11,14 @@ void addSpaces(string &s){
     }
 }
 
+void replaceCharWithSpaces(string &s, char c){
+    for (int i = 0; i < s.size(); i++){
+        if ((s[i] == c || s[i] == '\n')){
+            s[i]= ' ';
+        }
+    }
+}
+
 void removeSpareSpaces(string &s){
     //remove excessive spaces
     for (int i = 0; i < s.size() - 1; i++){
@@ -19,6 +27,10 @@ void removeSpareSpaces(string &s){
            i--;
         }
     }
+    if (s[0] == ' ')
+        s.erase(0, 1);
+    if (s[s.size() - 1] == ' ')
+        s.erase(s.size() - 1, 1);
 }
 
 void toLowerCase(string &s){

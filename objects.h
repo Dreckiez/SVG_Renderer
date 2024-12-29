@@ -9,7 +9,6 @@
 #include <cmath>
 #include "tinyxml2.h"
 #include <memory>
-
 #include "General.h"
 
 using namespace std;
@@ -68,7 +67,6 @@ namespace Shapes{
 
         void SetColor(string s);
         void SetStroke(string s);
-        void SetStyle(string s);
         void SetColorAlpha(float alpha);
         void SetStrokeAlpha(float alpha);
         void setPath(Gdiplus::GraphicsPath* p2);
@@ -94,6 +92,7 @@ namespace Shapes{
     private:
         Point A;
         float width, height;
+        float rx, ry;
     public:
         Rectangle();
         
@@ -106,7 +105,10 @@ namespace Shapes{
         void setHeight(float h);
         float getHeight();
         
-	    
+        void setRx(float rx);
+        void setRy(float ry);
+        float getRx();
+        float getRy();
     };
 
     class Line:public Object{

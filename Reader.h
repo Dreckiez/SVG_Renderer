@@ -7,10 +7,19 @@
 #include "objects.h"
 #include "Path.h"
 #include "General.h"
+#include "Style.h"
 
-class Reader{
+
+class Reader{ 
+private:
+    StyleGroup style;
 public:
     Reader();
+    void SetGeneralStyle(Shapes::Object* obj);
+    void SetObjectStyle(Shapes::Object* obj, XMLElement* E);
+
+    void ReadStyle(XMLElement *E);
+
     void ReadRectangle(Shapes::Rectangle* rect, XMLElement* E);
     void ReadLine(Shapes::Line* line, XMLElement* E);
     void ReadCircle(Shapes::Circle* circle, XMLElement* E);

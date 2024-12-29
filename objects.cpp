@@ -87,6 +87,7 @@ void Shapes::RGBA::SetRGB(string s){
             red = stoi(s.substr(1,2), nullptr, 16);
             green = stoi(s.substr(3,2), nullptr, 16);
             blue = stoi(s.substr(5,2), nullptr, 16);
+            cout << red << " " << green << " " << blue << endl;
         }
     }
     else if (namedColors.find(s) != namedColors.end()){
@@ -189,31 +190,11 @@ void Shapes::Object::CopyAttribute(const Object &other){
     Transform = other.Transform;
 }
 
-void Shapes::Object::SetStyle(string s){
-    removeSpareSpaces(s);
-    string type;
-    stringstream ss(s);
-    while(!ss.eof()){
-        getline(ss, type, ':');
-        if(type == "fill"){
-            string C;
-            getline(ss, C, ';');
-            color.SetRGB(C);
-        }
-        else if(type == "stroke"){
-            string S;
-            getline(ss, S, ';');
-            stroke.SetRGB(S);
-        }
-    }
-}
-
 void Shapes::Object::SetAttribute(XMLElement* E){
     const char* C = E->Attribute("fill");
     const char* S = E->Attribute("stroke");
     const char* T = E->Attribute("transform");
-    const char* Style = E->Attribute("style");
-
+    
     if (T != nullptr) setTransformString(T);
 
     const char* check = E->Attribute("fill-opacity");
@@ -230,20 +211,21 @@ void Shapes::Object::SetAttribute(XMLElement* E){
 
     if (C != nullptr){
         string temp = C;
+
         // toLowerCase(temp);
+        SetColorAlpha(1);
+        // toLowerCase(temp);
+
         SetColor(temp);
     }
      
     if (S != nullptr){
         string temp = S;
         toLowerCase(temp);
+        SetStrokeAlpha(1);
         SetStroke(S);
     }
     
-    if(Style != nullptr){
-        SetStyle(Style);
-    }
-
     const char* FR = E->Attribute("fill-rule");
     if (FR){
         SetFillRule(FR);
@@ -412,6 +394,22 @@ float Shapes::Rectangle::getWidth(){
 
 float Shapes::Rectangle::getHeight(){
     return height;
+}
+
+void Shapes::Rectangle::setRx(float rx){
+    this->rx = rx;
+}
+
+void Shapes::Rectangle::setRy(float ry){
+    this->ry = ry;
+}
+
+float Shapes::Rectangle::getRx(){
+    return rx;
+}
+
+float Shapes::Rectangle::getRy(){
+    return ry;
 }
 
 
