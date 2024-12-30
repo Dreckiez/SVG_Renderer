@@ -60,7 +60,10 @@ namespace Shapes{
         Gdiplus::GraphicsPath path;
     public:
         Object();
+        Object(const Object& other);
         virtual ~Object() = default;
+
+        Object& operator=(const Object& other);
 
         void SetAttribute(XMLElement* E);
         void CopyAttribute(const Object &other);

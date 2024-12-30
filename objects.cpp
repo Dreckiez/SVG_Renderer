@@ -183,6 +183,26 @@ Shapes::Object::Object(){
     fillRule = "nonzero";
 }
 
+Shapes::Object::Object(const Object& other){
+    color = other.color;
+    stroke = other.stroke;
+    stroke_width = other.stroke_width;
+    stroke_miterlimit = other.stroke_miterlimit;
+    Transform = other.Transform;
+    fillRule = other.fillRule;
+}
+
+Shapes::Object& Shapes::Object::operator=(const Shapes::Object& other){
+    if (this == &other) return *this;
+    color = other.color;
+    stroke = other.stroke;
+    stroke_width = other.stroke_width;
+    stroke_miterlimit = other.stroke_miterlimit;
+    Transform = other.Transform;
+    fillRule = other.fillRule;
+    return *this;
+}
+
 void Shapes::Object::CopyAttribute(const Object &other){
     color = other.color;
     stroke = other.stroke;
