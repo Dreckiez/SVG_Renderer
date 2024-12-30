@@ -23,6 +23,7 @@ namespace Shapes{
     class Path:public Object{
     private:
         vector<Command> cmd;
+        GraphicsPath path;
     public:
         Path();
 
@@ -30,6 +31,9 @@ namespace Shapes{
         Command getCmdAt(int idx);
 
         void add(Command c);
+        void setPath(Gdiplus::GraphicsPath* p2);
+        Gdiplus::GraphicsPath& getPath();
+        void setBoundingBox(Gdiplus::RectF& box) override;
     };
 }
 

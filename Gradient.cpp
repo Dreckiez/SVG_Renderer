@@ -65,6 +65,7 @@ bool Gradient::getIsBoundingBox(){
 void LinearGradient::read(XMLElement* gradientElem){
     int idx;
     set_id(gradientElem->Attribute("id"));
+    cout << get_id() << endl;
     // Set start and end pos;
     if(gradientElem->Attribute("x1")){
         float x1 = ConvertUnit(gradientElem->Attribute("x1")), y1 = ConvertUnit(gradientElem->Attribute("y1"));
@@ -326,6 +327,72 @@ void Gradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::
     }
 }
 
-void setBrush(Gdiplus::LinearGradientBrush* gb){
-    
+void Gradient::addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]){
+    int idx = 0;
+    for(int i = 0; i < stops_amount; i++){
+        float opacity = alpha * ((float)get_colors()[idx].GetAlpha());
+        if(i == 0){
+            Gdiplus::Color c(opacity, get_colors()[idx].GetRed(), get_colors()[idx].GetGreen(), get_colors()[idx].GetBlue());
+            color_array[i] = c;
+            stop_array[i] = 0;
+            i++;
+            stops_amount++;
+        }
+
+        if(opacity < 50 && idx != 0){
+            Gdiplus::Color backup(alpha * ((get_colors()[idx].GetAlpha() + get_colors()[idx-1].GetAlpha())/2),  get_colors()[idx-1].GetRed()*0.5 + get_colors()[idx].GetRed()*0.5, get_colors()[idx-1].GetGreen()*0.5 + get_colors()[idx].GetGreen()*0.5, get_colors()[idx-1].GetBlue()*0.5 + get_colors()[idx].GetBlue()*0.5);
+            color_array[i] = backup;
+            stop_array[i] = (get_stops()[idx] - ((get_stops()[idx] - get_stops()[idx-1]) / 2) + 3)/7;
+            i++;
+            stops_amount++;
+        }
+        Gdiplus::Color c(opacity, get_colors()[idx].GetRed(), get_colors()[idx].GetGreen(), get_colors()[idx].GetBlue());
+        color_array[i] = c;
+        stop_array[i] = (get_stops()[idx]+ 3) / 7;
+
+        if(opacity  < 50 && idx < get_amount() - 1){
+            i++;
+            Gdiplus::Color backup(alpha * (get_colors()[idx].GetAlpha() + get_colors()[idx+1].GetAlpha())/2,  get_colors()[idx+1].GetRed()*0.5 + get_colors()[idx].GetRed()*0.5, get_colors()[idx+1].GetGreen()*0.5 + get_colors()[idx].GetGreen()*0.5, get_colors()[idx+1].GetBlue()*0.5 + get_colors()[idx].GetBlue()*0.5);
+            color_array[i] = backup;
+            stop_array[i] = (get_stops()[idx] + ((get_stops()[idx+1] - get_stops()[idx]) / 2) + 3) / 7;
+            stops_amount++;
+        }
+
+        if(i == stops_amount - 1){
+            i++;
+            Gdiplus::Color backup(opacity, get_colors()[idx].GetRed(), get_colors()[idx].GetGreen(), get_colors()[idx].GetBlue());
+            color_array[i] = backup;
+            stop_array[i] = 1;
+            stops_amount++;
+        }
+        idx++;
+    }
+}
+
+void LinearGradient::setBrush(Shapes::Object* obj, Gdiplus::LinearGradientBrush*& gb, float alpha, float s){
+    Gdiplus::Color color_array[50];
+    float stop_array[50];
+    Gdiplus::PointF p1, p2;
+    if(!getIsBoundingBox()){
+        Gdiplus::PointF p3(((float)(get_start().GetX() + get_end().GetX()) / 2 - 3.5*(get_end().GetX() - get_start().GetX())) * s, ((float)(get_start().GetY() + get_end().GetY()) / 2 - 3.5*(get_end().GetY() - get_start().GetY())) * s);
+        Gdiplus::PointF p4(((float)(get_start().GetX() + get_end().GetX()) / 2 + 3.5*(get_end().GetX() - get_start().GetX())) * s, ((float)(get_start().GetY() + get_end().GetY()) / 2 + 3.5*(get_end().GetY() - get_start().GetY())) * s);
+        p1 = p3;
+        p2 = p4;
+    }
+    else{
+        Gdiplus::RectF boundingBox;
+        obj->setBoundingBox(boundingBox);
+        boundingBox.X *= s;  boundingBox.Y *= s;  boundingBox.Width *= s;  boundingBox.Height *= s;
+        float x1 = boundingBox.GetLeft() + (boundingBox.GetRight() - boundingBox.GetLeft()) * get_start().GetX()/100, y1 = boundingBox.GetTop() + (boundingBox.GetBottom() - boundingBox.GetTop()) * get_start().GetY()/100;
+        float x2 = boundingBox.GetLeft() + (boundingBox.GetRight() - boundingBox.GetLeft()) * get_end().GetX()/100, y2 = boundingBox.GetTop() + (boundingBox.GetBottom() - boundingBox.GetTop()) * get_end().GetY()/100;
+        Gdiplus::PointF p3( (x1 + x2) / 2 - 3.5*(x2 - x1), (y1 + y2) / 2 - 3.5*(y2 - y1));
+        Gdiplus::PointF p4( (x1 + x2) / 2 + 3.5*(x2 - x1), (y1 + y2) / 2 + 3.5*(y2 - y1));
+        p1 = p3;
+        p2 = p4;
+    }
+    gb = new Gdiplus::LinearGradientBrush(p1, p2, get_colors()[0], get_colors()[get_amount()-1]);
+    int stops_amount = get_amount();
+    addStops(stops_amount, alpha, color_array, stop_array);
+    gb->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
+    gb->SetInterpolationColors(color_array, stop_array, stops_amount);
 }

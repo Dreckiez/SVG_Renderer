@@ -43,3 +43,17 @@ Command Path::getCmdAt(int idx){
 void Path::add(Command c){
     cmd.push_back(c);
 }
+
+void Shapes::Path::setPath(GraphicsPath* p2){
+    path.AddPath(p2, true);
+}
+
+Gdiplus::GraphicsPath& Shapes::Path::getPath(){
+    return path;
+}
+
+void Shapes::Path::setBoundingBox(Gdiplus::RectF& box){
+    Gdiplus::GraphicsPath path;
+    path.AddPath(&getPath(), true);
+    path.GetBounds(&box);
+}
