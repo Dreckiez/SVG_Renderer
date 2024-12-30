@@ -162,12 +162,12 @@ void Drawer::DrawR(Shapes::Object* obj){
     setDrawer(obj);
     Shapes::Rectangle* R = dynamic_cast<Shapes::Rectangle*>(obj);
     if (R->getRx() != 0 || R->getRy() != 0){
-        float rx = min(R->getRx(), R->getWidth() / 2);
-        float ry = min(R->getRy(), R->getHeight() / 2);
-        float x = R->getPoint().GetX();
-        float y = R->getPoint().GetY();
-        float width = R->getWidth();
-        float height = R->getHeight();
+        float rx = min(R->getRx(), R->getWidth() / 2) * s;
+        float ry = min(R->getRy(), R->getHeight() / 2) * s;
+        float x = R->getPoint().GetX() * s;
+        float y = R->getPoint().GetY() * s;
+        float width = R->getWidth() * s;
+        float height = R->getHeight() * s;
         GraphicsPath path;
 
         if (obj->getFillRule() == "nonzero"){
