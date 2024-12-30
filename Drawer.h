@@ -18,6 +18,7 @@ private:
     Gdiplus::Pen* p;
     SolidBrush* b;
     Gdiplus::LinearGradientBrush* gb;
+    Gdiplus::PathGradientBrush* rgb;
     Gdiplus::Matrix Ma;
     GradientVector gradientList;
     Gdiplus::GraphicsPath path;
