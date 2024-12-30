@@ -190,6 +190,9 @@ float ConvertUnit(string s){
         s.erase(s.size() - 2, 2);
         return 3.78*stof(s);
     }
+    else if (s.find("%") != string::npos){
+        s.erase(s.size() - 1, 1);
+    }
     else if (s.find("px") != string::npos){
         s.erase(s.size() - 2, 2);
     }

@@ -12,6 +12,7 @@ protected:
     int amount;
     string Transform;
     bool isObjectBoundingBox;
+    Shapes::Point end;
 public:
     Gradient();
     Gradient(string I, Shapes::Point S);
@@ -26,15 +27,14 @@ public:
     void virtual read(XMLElement* gradientElem) = 0;
     bool getIsBoundingBox();
     void setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor);
+    Shapes::Point& get_end();
+    void set_end(Shapes::Point p);
 };
 
 class LinearGradient : public Gradient{
-private:
-    Shapes::Point end;
 public:
     void read(XMLElement* gradientElem) override;
-    Shapes::Point& get_end();
-    void set_end(Shapes::Point p);
+    void setBrush(Gdiplus::LinearGradientBrush* gb);
 };
 
 class RadialGradient : public Gradient{
@@ -43,6 +43,7 @@ private:
 public:
     void read(XMLElement* gradientElem) override;
     float get_radius();
+    void setBrush(Gdiplus::PathGradientBrush* rgb);
 };
 
 class GradientVector{

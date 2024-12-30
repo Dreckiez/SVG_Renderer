@@ -18,7 +18,7 @@ Shapes::Point& Gradient::get_start(){
     return start;
 }
 
-Shapes::Point& LinearGradient::get_end(){
+Shapes::Point& Gradient::get_end(){
     return end;
 }
 
@@ -30,7 +30,7 @@ void Gradient::set_start(Shapes::Point p){
     start.SetPoint(p.GetX(), p.GetY());
 }
 
-void LinearGradient::set_end(Shapes::Point p){
+void Gradient::set_end(Shapes::Point p){
     end.SetPoint(p.GetX(), p.GetY());
 }
 
@@ -67,8 +67,8 @@ void LinearGradient::read(XMLElement* gradientElem){
     set_id(gradientElem->Attribute("id"));
     // Set start and end pos;
     if(gradientElem->Attribute("x1")){
-        float x1 = atof(gradientElem->Attribute("x1")), y1 = atof(gradientElem->Attribute("y1"));
-        float x2 = atof(gradientElem->Attribute("x2")), y2 = atof(gradientElem->Attribute("y2"));
+        float x1 = ConvertUnit(gradientElem->Attribute("x1")), y1 = ConvertUnit(gradientElem->Attribute("y1"));
+        float x2 = ConvertUnit(gradientElem->Attribute("x2")), y2 = ConvertUnit(gradientElem->Attribute("y2"));
         Shapes::Point s(x1,y1), e(x2,y2);
         set_start(s);
         set_end(e);
@@ -151,24 +151,32 @@ void RadialGradient::read(XMLElement* gradientElem){
     int idx;
     set_id(gradientElem->Attribute("id"));
     // Set start and end pos;
-    float x1 = 0, y1 = 0;
+    float x1 = 50, y1 = 50, fx = 50, fy = 50;
     if(gradientElem->Attribute("cx")){
-        x1 = atof(gradientElem->Attribute("cx"));
+        x1 = ConvertUnit(gradientElem->Attribute("cx"));
     }
     if(gradientElem->Attribute("cy")){
-        y1 = atof(gradientElem->Attribute("cy"));
+        y1 = ConvertUnit(gradientElem->Attribute("cy"));
     }
     if(gradientElem->Attribute("r")){
-        radius = atof(gradientElem->Attribute("r"));
+        radius = ConvertUnit(gradientElem->Attribute("r"));
     }
     else{
         radius = 0;
     }
+    if(gradientElem->Attribute("fx")){
+        fx = ConvertUnit(gradientElem->Attribute("fx"));
+    }
+    if(gradientElem->Attribute("fy")){
+        fy = ConvertUnit(gradientElem->Attribute("fy"));
+    }
     if(gradientElem->Attribute("gradientTransform")){
         Transform = (gradientElem->Attribute("gradientTransform"));
     }
-    Shapes::Point s(x1,y1);
+    Shapes::Point s(fx,fy);
     set_start(s);
+    Shapes::Point e(x1,y1);
+    set_end(e);
     idx = 0;
     // Read all <stop> elements
     for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
@@ -316,4 +324,8 @@ void Gradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::
             gb->RotateTranform(rotate);
         }
     }
+}
+
+void setBrush(Gdiplus::LinearGradientBrush* gb){
+    
 }
