@@ -260,7 +260,7 @@ void Drawer::DrawPG(Shapes::Object* obj){
         path.SetFillMode(FillModeAlternate);
     }
     path.AddPolygon(list.data(), PG->getPoints().size());
-    obj->setPath(&path);
+    setPath(&path);
     setDrawer(obj);
     if(PG->getColor().GetGradient() != "")  FillPGGradient(&path);
     else   g->FillPath(b, &path);
@@ -374,7 +374,7 @@ void Drawer::DrawT(Shapes::Object* obj){
     }
 
     text.CloseFigure();
-    obj->setPath(&text);
+    setPath(&text);
     setDrawer(obj);
     g->DrawPath(p, &text);
     if(T->getColor().GetGradient() != "")   FillTextGradient(&text);
@@ -681,7 +681,7 @@ void Drawer::DrawP(Shapes::Object* obj){
         }
     }
     char end = cmd.back().getCmd();
-    obj->setPath(&path);
+    setPath(&path);
     setDrawer(obj);
     g->DrawPath(p, &path);
     if(P->getColor().GetGradient() != "")   FillPGradient(&path);
@@ -776,15 +776,24 @@ void Drawer::setBoundingBox(Shapes::Object* obj, Gdiplus::RectF& box){
     }
     else if(dynamic_cast<Shapes::Polygon*>(obj)){
         Shapes::Polygon* PG = dynamic_cast<Shapes::Polygon*>(obj);
-        path.AddPath(&PG->getPath(), true);
+        path.AddPath(&getPath(), true);
     }
     else if(dynamic_cast<Shapes::Path*>(obj)){
         Shapes::Path* P = dynamic_cast<Shapes::Path*>(obj);
-        path.AddPath(&P->getPath(), true);
+        path.AddPath(&getPath(), true);
     }
     else if(dynamic_cast<Shapes::Text*>(obj)){
         Shapes::Text* T = dynamic_cast<Shapes::Text*>(obj);
-        path.AddPath(&T->getPath(), true);
+        path.AddPath(&getPath(), true);
     }
+    getPath().Reset();
     path.GetBounds(&box);
+}
+
+void Drawer::setPath(Gdiplus::GraphicsPath* p2){
+    path.AddPath(p2, true);
+}
+
+Gdiplus::GraphicsPath& Drawer::getPath(){
+    return path;
 }

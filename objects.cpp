@@ -12,6 +12,7 @@
 #include "objects.h"
 #include "Reader.h"
 #include "tinyxml2.h"
+#include "Style.h"
 using namespace std;
 using namespace Gdiplus;
 using namespace tinyxml2;
@@ -68,6 +69,7 @@ void Shapes::RGBA::SetRGB(string s){
     if (s == ""){
     }
     if (s == "none" || s == "transparent"){
+        toLowerCase(s);
         opacity = 0.0;
     }
     else if (s.find('#') != string::npos){
@@ -91,6 +93,7 @@ void Shapes::RGBA::SetRGB(string s){
     }
     else if (namedColors.find(s) != namedColors.end()){
         //Color Name
+        toLowerCase(s);
         tie(red, green, blue) = namedColors[s];
     }
     else if (s.find("hsl") != string::npos){
@@ -229,13 +232,8 @@ void Shapes::Object::SetAttribute(XMLElement* E){
         setStrokeWidth(E->FloatAttribute("stroke-width"));
 
     if (C != nullptr){
-        string temp = C;
-
-        // toLowerCase(temp);
         SetColorAlpha(1);
-        // toLowerCase(temp);
-
-        SetColor(temp);
+        SetColor(C);
     }
      
     if (S != nullptr){
@@ -657,12 +655,4 @@ Shapes::Group::~Group(){
         delete Shapes_List[i];
     }
     Shapes_List.clear();
-}
-
-void Shapes::Object::setPath(Gdiplus::GraphicsPath* p2){
-    path.AddPath(p2, true);
-}
-
-Gdiplus::GraphicsPath& Shapes::Object::getPath(){
-    return path;
 }

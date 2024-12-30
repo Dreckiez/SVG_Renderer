@@ -20,6 +20,7 @@ private:
     Gdiplus::LinearGradientBrush* gb;
     Gdiplus::Matrix Ma;
     GradientVector gradientList;
+    Gdiplus::GraphicsPath path;
     ViewBox VB;
     ViewPort VP;
 public:
@@ -53,5 +54,7 @@ public:
     void Draw();
     void setGradientBrush(Shapes::Object* obj);
     void setBoundingBox(Shapes::Object* obj, Gdiplus::RectF& box);
+    void setPath(Gdiplus::GraphicsPath* p2);
+    Gdiplus::GraphicsPath& getPath();
 };    
 #endif
