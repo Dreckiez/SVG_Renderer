@@ -98,7 +98,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
             GradientVector LV;
 
             tinyxml2::XMLElement* def = doc.FirstChildElement("svg")->FirstChildElement("defs");
-            if(def){
+            while(def){
                 LV.read_gradient(def);
                 for (tinyxml2::XMLElement* root = def->FirstChildElement(); root != nullptr; root = root->NextSiblingElement()){
                     string name = root->Name();
@@ -106,6 +106,7 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                         reader.ReadStyle(root);
                     }
                 }
+                def = def->NextSiblingElement("defs");
             }
             ViewBox VB;
             if (doc.FirstChildElement("svg")->Attribute("viewBox")){
