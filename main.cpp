@@ -103,7 +103,6 @@ LRESULT CALLBACK WindowProc(HWND hwnd, UINT uMsg, WPARAM wParam, LPARAM lParam) 
                     tinyxml2::XMLElement* grDef = def;
                     while (grDef){
                         LV.read_gradient(grDef);
-                        cout << 1;
                         grDef = grDef->NextSiblingElement();
                     }
                 }else if (name == "defs"){

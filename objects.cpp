@@ -325,6 +325,7 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     while(getline(ss, type, '(')){
         removeSpareSpaces(type);
         if(type == "translate"){
+            cout << "\nt\n";
             getline(ss, para, ')');
             addSpaces(para);
             removeSpareSpaces(para);
@@ -338,6 +339,7 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             translate_y = 0;
         }
         else if(type == "scale"){
+            cout << "\ns\n";
             string temp;
             getline(ss, temp, ')');
             removeSpareSpaces(temp);
@@ -349,6 +351,7 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
+            cout << "\nr\n";
             getline(ss, para, ')');
             rotate = stof(para);
             float radian = rotate * 3.1415926 / (float)180;
