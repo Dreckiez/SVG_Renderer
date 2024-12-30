@@ -190,7 +190,7 @@ void Drawer::DrawR(Shapes::Object* obj){
 
         g->FillPath(b, &path);
     }else{
-        if(obj->getColor().GetGradient() != ""){
+            if(obj->getColor().GetGradient() != ""){
             FillRectGradient(R);
         }
         else{
@@ -419,7 +419,6 @@ void Drawer::DrawP(Shapes::Object* obj){
         for (int j = 0; j < pSize; j++){
             coor[j] *= s;
         }
-        cout << i << endl;
         if (c == 'M' || c == 'm'){
             
             path.StartFigure();
@@ -538,7 +537,6 @@ void Drawer::DrawP(Shapes::Object* obj){
             for (int j = 0; j < pSize - 3; j++){
                 if (j == 0){
                     if (i > 0 && (cmd[i - 1].getCmd() == 'C' || cmd[i - 1].getCmd() == 'c' || cmd[i - 1].getCmd() == 's' || cmd[i - 1].getCmd() == 'S')){
-                        cout << j << endl;
                         Control1 = pre + pre - preCurve;
                     }else{
                         Control1 = pre;
@@ -725,7 +723,6 @@ void Drawer::DrawG(Shapes::Object* obj){
         }
     }
     Reset();
-    cout << "count: " << count << endl;
 }
 
 void Drawer::Draw(){
@@ -753,11 +750,9 @@ void Drawer::Draw(){
             DrawT(rawPtr);
         }else if(dynamic_cast <Shapes::Path*> (rawPtr)){
             DrawP(rawPtr);
-            cout << 1 << endl;
         }
         else if (dynamic_cast<Shapes::Group*> (rawPtr)){
             DrawG(rawPtr);
-            cout << 2 << endl;
         }
     }
 }
