@@ -1,5 +1,14 @@
 #include "Style.h"
 
+Style::Style(){
+    
+}
+
+Style::Style(const Style& other){
+    style = other.style;
+    name = other.name;
+}
+
 void Style::setStyle(string s){
     removeSpareSpaces(s);
     string type;

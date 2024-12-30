@@ -14,6 +14,8 @@ private:
     vector<string> name;
     // string type;
 public:
+    Style();
+    Style(const Style& );
     void setStyle(string s);
     Shapes::Object getStyle();
 
