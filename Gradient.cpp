@@ -175,12 +175,39 @@ void RadialGradient::read(XMLElement* gradientElem){
             stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
         float offset = 0.0f;
         stopElem->QueryFloatAttribute("offset", &offset);
-        string colorHex = stopElem->Attribute("stop-color");
+        string OffsetString = stopElem->Attribute("offset");
+        if(OffsetString.find('%') != std::string::npos){
+            offset /= 100;
+        }
+        const char* Style = stopElem->Attribute("style");
+        const char* colorHex = stopElem->Attribute("stop-color");
+        const char* O = stopElem->Attribute("stop-opacity");
         float stopOpacity = 1.0f;
-        stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
         Shapes::RGBA color;
-        color.SetRGB(colorHex);
-        color.SetAlpha(stopOpacity);
+        if(O){
+            stopOpacity = atof(O);
+        }
+        if(colorHex){
+            color.SetRGB(colorHex);
+        }
+        if(Style){
+            string StyleString = Style;
+            removeSpareSpaces(StyleString);
+            stringstream ss(StyleString);
+            while(!ss.eof()){
+                string type;
+                getline(ss, type, ':');
+                string parameter;
+                getline(ss, parameter, ';');
+                if(type == "stop-color"){
+                    color.SetRGB(parameter);
+                }
+                else if(type == "stop-opacity"){
+                    stopOpacity = stof(parameter);
+                }
+            
+            }
+        }
         Gdiplus::Color c(stopOpacity*255, color.GetRed(), color.GetGreen(), color.GetBlue());
         if(idx == 0 && offset != 0){
             get_stops()[idx] = 0;
