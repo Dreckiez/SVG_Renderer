@@ -211,8 +211,11 @@ void Shapes::Object::SetAttribute(XMLElement* E){
 
     if (C != nullptr){
         string temp = C;
+
+        // toLowerCase(temp);
         SetColorAlpha(1);
-        toLowerCase(temp);
+        // toLowerCase(temp);
+
         SetColor(temp);
     }
      
@@ -634,4 +637,12 @@ Shapes::Group::~Group(){
         delete Shapes_List[i];
     }
     Shapes_List.clear();
+}
+
+void Shapes::Object::setPath(Gdiplus::GraphicsPath* p2){
+    path.AddPath(p2, true);
+}
+
+Gdiplus::GraphicsPath& Shapes::Object::getPath(){
+    return path;
 }
