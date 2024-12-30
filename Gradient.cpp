@@ -4,14 +4,12 @@ Gradient::Gradient(){
     id = "";
     start.SetPoint(0,0);
     amount = 0;
-    isObjectBoundingBox = true;
 }
 
 Gradient::Gradient(string I, Shapes::Point S){
     id = I;
     start.SetPoint(S.GetX(), S.GetY());
     amount = 0;
-    isObjectBoundingBox = true;
 }
 
 Shapes::Point& Gradient::get_start(){
@@ -58,10 +56,6 @@ void Gradient::set_id(std::string str){
     id = str;
 }
 
-bool Gradient::getIsBoundingBox(){
-    return isObjectBoundingBox;
-}
-
 void LinearGradient::read(XMLElement* gradientElem){
     int idx;
     set_id(gradientElem->Attribute("id"));
@@ -82,48 +76,18 @@ void LinearGradient::read(XMLElement* gradientElem){
     if(gradientElem->Attribute("gradientTransform")){
         Transform = (gradientElem->Attribute("gradientTransform"));
     }
-    if(gradientElem->Attribute("gradientUnits") && strcmp(gradientElem->Attribute("gradientUnits"), "userSpaceOnUse") == 0){
-        isObjectBoundingBox = false;
-    }
     idx = 0;
     // Read all <stop> elements
     for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
             stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
         float offset = 0.0f;
         stopElem->QueryFloatAttribute("offset", &offset);
-        string OffsetString = stopElem->Attribute("offset");
-        if(OffsetString.find('%') != std::string::npos){
-            offset /= 100;
-        }
-        const char* Style = stopElem->Attribute("style");
-        const char* colorHex = stopElem->Attribute("stop-color");
-        const char* O = stopElem->Attribute("stop-opacity");
+        string colorHex = stopElem->Attribute("stop-color");
         float stopOpacity = 1.0f;
+        stopElem->QueryFloatAttribute("stop-opacity", &stopOpacity);
         Shapes::RGBA color;
-        if(O){
-            stopOpacity = atof(O);
-        }
-        if(colorHex){
-            color.SetRGB(colorHex);
-        }
-        if(Style){
-            string StyleString = Style;
-            removeSpareSpaces(StyleString);
-            stringstream ss(StyleString);
-            while(!ss.eof()){
-                string type;
-                getline(ss, type, ':');
-                string parameter;
-                getline(ss, parameter, ';');
-                if(type == "stop-color"){
-                    color.SetRGB(parameter);
-                }
-                else if(type == "stop-opacity"){
-                    stopOpacity = stof(parameter);
-                }
-            
-            }
-        }
+        color.SetRGB(colorHex);
+        color.SetAlpha(stopOpacity);
         Gdiplus::Color c(stopOpacity*255, color.GetRed(), color.GetGreen(), color.GetBlue());
         if(idx == 0 && offset != 0){
             get_stops()[idx] = 0;

@@ -51,7 +51,6 @@ public:
 
     void DrawG(Shapes::Object* obj);
     void Draw();
-    void setGradientBrush(Shapes::Object* obj);
-    void setBoundingBox(Shapes::Object* obj, Gdiplus::RectF& box);
+    void setGradientBrush(string r, float alpha);
 };    
 #endif

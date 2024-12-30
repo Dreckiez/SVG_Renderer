@@ -11,7 +11,6 @@ protected:
     Gdiplus::Color colors[50];
     int amount;
     string Transform;
-    bool isObjectBoundingBox;
 public:
     Gradient();
     Gradient(string I, Shapes::Point S);
@@ -24,7 +23,6 @@ public:
     double* get_stops();
     Gdiplus::Color* get_colors();
     void virtual read(XMLElement* gradientElem) = 0;
-    bool getIsBoundingBox();
     void setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor);
 };
 
