@@ -322,26 +322,15 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     stringstream ss(Transform);
     M.Translate(anchor.X*(1-s), anchor.Y*(1-s));
     while(getline(ss, type, '(')){
+        removeSpareSpaces(type);
         if(type == "translate"){
+            cout << "\nt\n";
             getline(ss, para, ')');
-            int size = para.length();
-            string number_string;
-            for(int i = 0; i < size; i++){
-                if(para[i] != ',' && para[i] != ' '){
-                    number_string += para[i];
-                }
-                else if(translate_x == 0){
-                    translate_x = stof(number_string);
-                    number_string = "";
-                    if(para[i+1] == ' ' || para[i+1] == ','){
-                        i++;
-                    }
-                }
-                if(i == size-1){
-                    translate_y = stof(number_string);
-                }
-            }
-            getline(ss, para, ' ');
+            addSpaces(para);
+            removeSpareSpaces(para);
+            stringstream ssPara(para);
+            ssPara >> translate_x >> translate_y;
+            cout << para << " " << translate_x << " " << translate_y << endl;
             translate_x*=s;
             translate_y*=s;
             M.Translate(translate_x, translate_y);
@@ -349,29 +338,22 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             translate_y = 0;
         }
         else if(type == "scale"){
+            cout << "\ns\n";
             string temp;
             getline(ss, temp, ')');
+            removeSpareSpaces(temp);
             stringstream scale_stream(temp);
-            if (temp.find(',') != std::string::npos){
-                getline(scale_stream, para, ',');
-                scale_x = stof(para);
-                getline(scale_stream, para, ')');
-                scale_y = stof(para);
-                getline(ss, para, ' ');
-            }
-            else{
-                getline(scale_stream, para, ')');
-                scale_x = stof(para);
-                scale_y = stof(para);
-                getline(ss, para, ' ');
+            scale_stream >> scale_x;
+            if(!(scale_stream >> scale_y)){
+                scale_y = scale_x;
             }
             M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
+            cout << "\nr\n";
             getline(ss, para, ')');
             rotate = stof(para);
             float radian = rotate * 3.1415926 / (float)180;
-            getline(ss, para, ' ');
             M.Rotate(rotate);
         }
     }
