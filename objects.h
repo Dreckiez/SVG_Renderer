@@ -86,6 +86,7 @@ namespace Shapes{
         void setTransformString(const char* T);
         void setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF anchor);
         string get_transform();
+        virtual void setBoundingBox(Gdiplus::RectF& box);
     };
 
     class Rectangle:public Object{
@@ -109,6 +110,7 @@ namespace Shapes{
         void setRy(float ry);
         float getRx();
         float getRy();
+        void setBoundingBox(Gdiplus::RectF& box) override;
     };
 
     class Line:public Object{
@@ -136,7 +138,7 @@ namespace Shapes{
         
         float getRadius();
         void setRadius(float r);
-        
+        void setBoundingBox(Gdiplus::RectF& box) override;
     };
 
     class Ellipse:public Object{
@@ -154,16 +156,21 @@ namespace Shapes{
         
         float getRadiusY();
         void setRadiusY(float ry);
+        void setBoundingBox(Gdiplus::RectF& box) override;
     };
 
     class Polygon:public Object{
     private:
         vector<Point> Points;
+        GraphicsPath path;
     public:
         Polygon();
         
         vector<Point> getPoints();
         void setPoints(vector<Point>& pts);
+        void setBoundingBox(Gdiplus::RectF& box) override;
+        void setPath(Gdiplus::GraphicsPath* p2);
+        Gdiplus::GraphicsPath& getPath();
     };
 
     class Polyline:public Object{
@@ -186,6 +193,7 @@ namespace Shapes{
         string font_style;
         vector<float> offset_x;
         vector<float> offset_y;
+        GraphicsPath path;
     public:
         Text();
         
@@ -212,6 +220,9 @@ namespace Shapes{
         wstring getText();
         wstring StringToWstring(string& str);
         void setText(string &str);
+        void setPath(Gdiplus::GraphicsPath* p2);
+        Gdiplus::GraphicsPath& getPath();
+        void setBoundingBox(Gdiplus::RectF& box) override;
     };
 
     class Group:public Object{

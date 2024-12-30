@@ -77,6 +77,7 @@ void Shapes::RGBA::SetRGB(string s){
         if(s.find("url(#") != string::npos){
             int start = s.find("#") + 1, end = s.size() - 1;
             gradient_name = s.substr(start, end - start);
+            cout << gradient_name << "*" << endl;
             return;
         }
         // HEX CODE format
@@ -638,3 +639,54 @@ Shapes::Group::~Group(){
     }
     Shapes_List.clear();
 }
+
+void Shapes::Polygon::setPath(Gdiplus::GraphicsPath* p2){
+    path.AddPath(p2, true);
+}
+
+Gdiplus::GraphicsPath& Shapes::Polygon::getPath(){
+    return path;
+}
+
+void Shapes::Text::setPath(Gdiplus::GraphicsPath* p2){
+    path.AddPath(p2, true);
+}
+
+Gdiplus::GraphicsPath& Shapes::Text::getPath(){
+    return path;
+}
+
+void Shapes::Rectangle::setBoundingBox(Gdiplus::RectF& box){
+    Gdiplus::GraphicsPath path;
+    Gdiplus::RectF r(getPoint().GetX(), getPoint().GetY(), getWidth(), getHeight());
+    path.AddRectangle(r);
+    path.GetBounds(&box);
+}
+
+void Shapes::Circle::setBoundingBox(Gdiplus::RectF& box){
+    Gdiplus::GraphicsPath path;
+    Gdiplus::RectF r(getCenter().GetX() - getRadius(), getCenter().GetY() - getRadius(), getRadius()*2, getRadius()*2);
+    path.AddEllipse(r);
+    path.GetBounds(&box);
+}
+
+void Shapes::Ellipse::setBoundingBox(Gdiplus::RectF& box){
+    Gdiplus::GraphicsPath path;
+    Gdiplus::RectF r((getCenter().GetX() - getRadiusX()), (getCenter().GetY() - getRadiusY()), getRadiusX()*2, getRadiusY()*2);
+    path.AddEllipse(r);
+    path.GetBounds(&box);
+}
+
+void Shapes::Polygon::setBoundingBox(Gdiplus::RectF& box){
+    Gdiplus::GraphicsPath path;
+    path.AddPath(&getPath(), true);
+    path.GetBounds(&box);
+}
+
+void Shapes::Text::setBoundingBox(Gdiplus::RectF& box){
+    Gdiplus::GraphicsPath path;
+    path.AddPath(&getPath(), true);
+    path.GetBounds(&box);
+}
+
+void Shapes::Object::setBoundingBox(Gdiplus::RectF& box){}
