@@ -29,7 +29,7 @@ public:
     void setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor);
     Shapes::Point& get_end();
     void set_end(Shapes::Point p);
-    void addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]);
+    virtual void addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]);
 };
 
 class LinearGradient : public Gradient{
@@ -44,7 +44,8 @@ private:
 public:
     void read(XMLElement* gradientElem) override;
     float get_radius();
-    void setBrush(Gdiplus::PathGradientBrush* rgb);
+    void setBrush(GraphicsPath& path, Gdiplus::PathGradientBrush*& rgb, float alpha, float s);
+    void addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]);
 };
 
 class GradientVector{

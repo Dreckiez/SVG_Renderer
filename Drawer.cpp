@@ -70,6 +70,8 @@ Drawer::Drawer(vector <unique_ptr<Shapes::Object>>& list, Gdiplus::Graphics* g, 
     gradientList = linear;
     VB = vb;
     VP = vp;
+    gb = nullptr;
+    rgb = nullptr;
 }
 
 void Drawer::setGradientBrush(Shapes::Object* obj){
@@ -77,8 +79,38 @@ void Drawer::setGradientBrush(Shapes::Object* obj){
     float alpha = obj->getColor().GetAlpha();
     for(int i = 0; i < gradientList.get_content().size(); i++){
         if(r == gradientList.get_content()[i]->get_id()){
-            LinearGradient* LG = dynamic_cast<LinearGradient*> (gradientList.get_content()[i]);
-            LG->setBrush(obj, gb, alpha, s);
+            if(LinearGradient* LG = dynamic_cast<LinearGradient*> (gradientList.get_content()[i])){
+                LG->setBrush(obj, gb, alpha, s);
+            }
+            if(RadialGradient* RG = dynamic_cast<RadialGradient*> (gradientList.get_content()[i])){
+                Gdiplus::GraphicsPath path;
+                if(Shapes::Rectangle* R = dynamic_cast <Shapes::Rectangle*> (obj)){
+                    Gdiplus::RectF r(R->getPoint().GetX(), R->getPoint().GetY(), R->getWidth(), R->getHeight());
+                    path.AddRectangle(r);
+                }
+                else if(Shapes::Circle* C = dynamic_cast <Shapes::Circle*> (obj)){
+                    Gdiplus::RectF r(C->getCenter().GetX() - C->getRadius(), C->getCenter().GetY() - C->getRadius(), C->getRadius()*2, C->getRadius()*2);
+                    path.AddEllipse(r);
+                }
+                else if(Shapes::Ellipse* E = dynamic_cast <Shapes::Ellipse*> (obj)){
+                    Gdiplus::RectF r((E->getCenter().GetX() - E->getRadiusX()), (E->getCenter().GetY() - E->getRadiusY()), E->getRadiusX()*2, E->getRadiusY()*2);
+                    path.AddEllipse(r);
+                }
+                else if(Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj)){
+                    path.AddPath(&PG->getPath(), true);
+                }
+                else if(Shapes::Polyline* PL = dynamic_cast <Shapes::Polyline*> (obj)){
+                    for(int i = 0; i < PL->getPoints().size() - 1; i++){
+                        path.AddLine(PointF(PL->getPoints()[i].GetX(), PL->getPoints()[i].GetY()), PointF(PL->getPoints()[i+1].GetX(), PL->getPoints()[i+1].GetY()));
+                    }
+                }
+                else if(Shapes::Text* T = dynamic_cast <Shapes::Text*> (obj)){
+                    path.AddPath(&T->getPath(), true);
+                }else if(Shapes::Path* P = dynamic_cast <Shapes::Path*> (obj)){
+                    path.AddPath(&P->getPath(), true);
+                }
+                RG->setBrush(path, rgb, alpha, s);
+            }
             return;
         }
     }
@@ -86,9 +118,17 @@ void Drawer::setGradientBrush(Shapes::Object* obj){
 }
 
 void Drawer::FillRectGradient(Shapes::Rectangle* R){
-    g->FillRectangle(gb, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
-    gb->ResetTransform();
-    delete gb;
+    if(gb){
+        g->FillRectangle(gb, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+        gb->ResetTransform();
+        delete gb;
+        gb = nullptr;
+    }
+    if(rgb){
+        g->FillRectangle(rgb, R->getPoint().GetX() * s, R->getPoint().GetY() * s, R->getWidth() * s, R->getHeight() * s);
+        delete rgb;
+        rgb = nullptr;
+    }  
 }
 
 
@@ -120,6 +160,7 @@ void Drawer::DrawR(Shapes::Object* obj){
         path.AddLine(x, y + height - ry, x, y + ry);                    // Left edge
 
         path.CloseFigure();
+
         g->DrawPath(p, &path);
 
         g->FillPath(b, &path);
@@ -145,8 +186,16 @@ void Drawer::DrawL(Shapes::Object* obj){
 }
 
 void Drawer::FillCircleGradient(Shapes::Circle* C){
-    g->FillEllipse(gb, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
-    delete gb;
+    if(gb){
+        g->FillEllipse(gb, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
+        delete gb;
+        gb = nullptr;
+    }
+    if(rgb){
+        g->FillEllipse(rgb, (C->getCenter().GetX() - C->getRadius()) * s, (C->getCenter().GetY() - C->getRadius()) * s, C->getRadius()*2 * s, C->getRadius()*2 * s);
+        delete rgb;
+        rgb = nullptr;
+    }
 }
 
 void Drawer::DrawC(Shapes::Object* obj){
@@ -160,8 +209,16 @@ void Drawer::DrawC(Shapes::Object* obj){
 }
 
  void Drawer::FillEllipseGradient(Shapes::Ellipse* E){
-    g->FillEllipse(gb, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
-    delete gb;
+    if(gb){
+        g->FillEllipse(gb, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
+        delete gb;
+        gb = nullptr;
+    }
+    else if(rgb){
+        g->FillEllipse(rgb, (E->getCenter().GetX() - E->getRadiusX()) * s, (E->getCenter().GetY() - E->getRadiusY()) * s, E->getRadiusX()*2 * s, E->getRadiusY()*2 * s);
+        delete rgb;
+        rgb = nullptr;
+    }
  }
 
 void Drawer::DrawE(Shapes::Object* obj){
@@ -175,8 +232,16 @@ void Drawer::DrawE(Shapes::Object* obj){
 }
 
 void Drawer::FillPGGradient(Gdiplus::GraphicsPath* path){
-    g->FillPath(gb, path);
-    delete gb;
+    if(gb){
+        g->FillPath(gb, path);
+        delete gb;
+        gb = nullptr;
+    }
+    else if(rgb){
+        g->FillPath(rgb, path);
+        delete rgb;
+        rgb = nullptr;
+    }
 }
 
 void Drawer::DrawPG(Shapes::Object* obj){
@@ -203,8 +268,16 @@ void Drawer::DrawPG(Shapes::Object* obj){
 }
 
 void Drawer::FillPLGradient(vector <Gdiplus::PointF> pF){
-    g->FillPolygon(gb, pF.data(), static_cast<int> (pF.size()));
-    delete gb;
+    if(gb){
+        g->FillPolygon(gb, pF.data(), static_cast<int> (pF.size()));
+        delete gb;
+        gb = nullptr;
+    }
+    else if(rgb){
+        g->FillPolygon(rgb, pF.data(), static_cast<int> (pF.size()));
+        delete rgb;
+        rgb = nullptr;
+    }
 }
 
 
@@ -224,8 +297,16 @@ void Drawer::DrawPL(Shapes::Object* obj){
 }
 
 void Drawer::FillTextGradient(Gdiplus::GraphicsPath* text){
-    g->FillPath(gb, text);
-    delete gb;
+    if(gb){
+        g->FillPath(gb, text);
+        delete gb;
+        gb = nullptr;
+    }
+    else if(rgb){
+        g->FillPath(rgb, text);
+        delete rgb;
+        rgb = nullptr;
+    }
 }
 
 
@@ -319,8 +400,16 @@ void Drawer::DrawT(Shapes::Object* obj){
 }
 
 void Drawer::FillPGradient(Gdiplus::GraphicsPath* path){
-    g->FillPath(gb, path);
-    delete gb;
+    if(gb){
+        g->FillPath(gb, path);
+        delete gb;
+        gb = nullptr;
+    }
+    else if(rgb){
+        g->FillPath(rgb, path);
+        delete rgb;
+        rgb = nullptr;
+    }
 }
 
 void Drawer::DrawP(Shapes::Object* obj){
