@@ -77,7 +77,6 @@ void Shapes::RGBA::SetRGB(string s){
         if(s.find("url(#") != string::npos){
             int start = s.find("#") + 1, end = s.size() - 1;
             gradient_name = s.substr(start, end - start);
-            cout << gradient_name << "*" << endl;
             return;
         }
         // HEX CODE format
@@ -222,18 +221,21 @@ void Shapes::Object::SetAttribute(XMLElement* E){
 
     const char* check = E->Attribute("fill-opacity");
     if (check != nullptr)
-        SetColorAlpha((float)atof(check));
+        SetColorAlpha(E->FloatAttribute("fill-opacity"));
 
     check = E->Attribute("stroke-opacity");
 
-    if (check != nullptr)
-        SetStrokeAlpha((float)atof(check));
+    if (check != nullptr){
+        SetStrokeAlpha(E->FloatAttribute("stroke-opacity"));
+    }
         
-    if(E->Attribute("stroke-width") != nullptr)
+    if(E->Attribute("stroke-width") != nullptr){
         setStrokeWidth(E->FloatAttribute("stroke-width"));
+    }
 
     if (C != nullptr){
-        SetColorAlpha(1);
+        if (getColor().GetAlpha() == 0)
+            SetColorAlpha(1);
         SetColor(C);
     }
      
@@ -243,7 +245,7 @@ void Shapes::Object::SetAttribute(XMLElement* E){
         SetStrokeAlpha(1);
         SetStroke(S);
     }
-    
+
     const char* FR = E->Attribute("fill-rule");
     if (FR){
         SetFillRule(FR);
@@ -260,7 +262,8 @@ void Shapes::Object::SetColor(string s){
 }
 
 void Shapes::Object::SetStroke(string s){
-    stroke.SetAlpha(1);
+    if (s != "none")
+        stroke.SetAlpha(1);
     stroke.SetRGB(s);
 }
 
@@ -325,13 +328,11 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
     while(getline(ss, type, '(')){
         removeSpareSpaces(type);
         if(type == "translate"){
-            cout << "\nt\n";
             getline(ss, para, ')');
             addSpaces(para);
             removeSpareSpaces(para);
             stringstream ssPara(para);
             ssPara >> translate_x >> translate_y;
-            cout << para << " " << translate_x << " " << translate_y << endl;
             translate_x*=s;
             translate_y*=s;
             M.Translate(translate_x, translate_y);
@@ -339,7 +340,6 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             translate_y = 0;
         }
         else if(type == "scale"){
-            cout << "\ns\n";
             string temp;
             getline(ss, temp, ')');
             removeSpareSpaces(temp);
@@ -351,7 +351,6 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             M.Scale(scale_x, scale_y);
         }
         else if(type == "rotate"){
-            cout << "\nr\n";
             getline(ss, para, ')');
             rotate = stof(para);
             float radian = rotate * 3.1415926 / (float)180;
