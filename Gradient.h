@@ -42,11 +42,13 @@ class RadialGradient : public Gradient{
 private:
     float radius;
     string spreadMethod;
+    string href;
 public:
     void read(XMLElement* gradientElem) override;
     float get_radius();
     void setBrush(GraphicsPath& path, Gdiplus::PathGradientBrush*& rgb, float alpha, float s);
     void addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]);
+    void setTransform(Gdiplus::PathGradientBrush* rgb, float s);
 };
 
 class GradientVector{

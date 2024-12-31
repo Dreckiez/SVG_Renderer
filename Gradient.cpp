@@ -182,9 +182,28 @@ void RadialGradient::read(XMLElement* gradientElem){
     Shapes::Point e(fx,fy);
     set_end(e);
     idx = 0;
+    XMLElement* stopElem = gradientElem->Parent()->ToElement()->FirstChildElement();
     // Read all <stop> elements
-    for (XMLElement* stopElem = gradientElem->FirstChildElement("stop");
-            stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
+    if(gradientElem->Attribute("xlink:href")){
+        href = gradientElem->Attribute("xlink:href");
+        href.erase(0,1);
+        bool is_there = false;
+        while(stopElem){
+            if(stopElem->Attribute("id") == href){
+                stopElem = stopElem->FirstChildElement("stop");
+                is_there = true;
+                break;
+            }
+            stopElem = stopElem->NextSiblingElement();
+        }
+        if(!is_there){
+            stopElem = gradientElem->FirstChildElement("stop");
+        }
+    }
+    else{
+        stopElem = gradientElem->FirstChildElement("stop");
+    }
+    for (;stopElem; stopElem = stopElem->NextSiblingElement("stop")) {
         float offset = 0.0f;
         stopElem->QueryFloatAttribute("offset", &offset);
         string OffsetString = stopElem->Attribute("offset");
@@ -316,6 +335,74 @@ void LinearGradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s){
             getline(ss, para, ' ');
             gb->RotateTranform(rotate);
         }
+        else if(type == "matrix"){
+            float numbers[6];
+            for(int i = 0; i < 6; i++){
+                ss >> numbers[i];
+            }
+            numbers[4]*=s;
+            numbers[5]*=s;
+            Gdiplus::Matrix M(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
+            gb->SetTransform(&M);
+        }
+    }
+}
+
+void RadialGradient::setTransform(Gdiplus::PathGradientBrush* rgb, float s){
+    string type, para;
+    float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
+    stringstream ss(Transform);
+    while(getline(ss, type, '(')){
+        removeSpareSpaces(type);
+        if(type == "translate"){
+            getline(ss, para, ')');
+            addSpaces(para);
+            removeSpareSpaces(para);
+            stringstream ssPara(para);
+            ssPara >> translate_x >> translate_y;
+            translate_x*=s;
+            translate_y*=s;
+            if(start.GetX() < end.GetX())   rgb->TranslateTransform(translate_x, translate_y);
+            else rgb->TranslateTransform(-translate_x/2, -translate_y/2);
+            translate_x = 0;
+            translate_y = 0;
+        }
+        else if(type == "scale"){
+            string temp;
+            getline(ss, temp, ')');
+            stringstream scale_stream(temp);
+            if (temp.find(',') != std::string::npos){
+                getline(scale_stream, para, ',');
+                scale_x = atof(para.c_str());
+                getline(scale_stream, para, ')');
+                scale_y = atof(para.c_str());
+                getline(ss, para, ' ');
+            }
+            else{
+                getline(scale_stream, para, ')');
+                scale_x = atof(para.c_str());
+                scale_y = atof(para.c_str());
+                getline(ss, para, ' ');
+            }
+            rgb->ScaleTransform(scale_x, scale_y);
+        }
+        else if(type == "rotate"){
+            getline(ss, para, ')');
+            rotate = atof(para.c_str());
+            float radian = rotate * 3.1415926 / (float)180;
+            getline(ss, para, ' ');
+            rgb->RotateTransform(rotate);
+        }
+        else if(type == "matrix"){
+            float numbers[6];
+            for(int i = 0; i < 6; i++){
+                ss >> numbers[i];
+            }
+            numbers[4]*=s;
+            numbers[5]*=s;
+            Gdiplus::Matrix M(numbers[0], numbers[1], numbers[2], numbers[3], numbers[4], numbers[5]);
+            rgb->SetTransform(&M);
+        }
     }
 }
 
@@ -414,16 +501,18 @@ void RadialGradient::setBrush(GraphicsPath& path, Gdiplus::PathGradientBrush*& r
     addStops(stops_amount, alpha, color_array, stop_array);
     rgb->SetCenterColor(colors[0]); 
     rgb->SetSurroundColors(color_array, &stops_amount);
-    rgb->SetWrapMode(Gdiplus::WrapModeTileFlipX);
+    rgb->SetWrapMode(Gdiplus::WrapModeClamp);
+    setTransform(rgb, s);
     rgb->SetInterpolationColors(color_array, stop_array, stops_amount);
 }
 
 void RadialGradient::addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]){
-    for(int i = 0; i < stops_amount-1; i++){
-        float opacity = alpha * ((float)colors[i].GetAlpha());
+    int i = 0;
+    for(; i < stops_amount-1; i++){
+        float opacity = alpha * ((float)colors[i+1].GetAlpha());
         Gdiplus::Color c(opacity, colors[i+1].GetRed(), colors[i+1].GetGreen(), colors[i+1].GetBlue());
         color_array[i] = c;
-        stop_array[i] = stops[i];
+        stop_array[i] = stops[i+1];
     }
     stops_amount--;
 }

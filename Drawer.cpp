@@ -85,29 +85,39 @@ void Drawer::setGradientBrush(Shapes::Object* obj){
             if(RadialGradient* RG = dynamic_cast<RadialGradient*> (gradientList.get_content()[i])){
                 Gdiplus::GraphicsPath path;
                 Gdiplus::RectF boundingBox;
-                obj->setBoundingBox(boundingBox);
-                boundingBox.X*=s; boundingBox.Y*=s; boundingBox.Width*=s; boundingBox.Height*=s;
-                if(dynamic_cast <Shapes::Rectangle*> (obj)){
-                    path.AddRectangle(boundingBox);
-                }
-                else if(dynamic_cast <Shapes::Circle*> (obj)){
+                float radius = RG->get_radius()*1.25;
+                if(!RG->getIsBoundingBox()){
+                    boundingBox.X = (RG->get_start().GetX() - radius) * s;
+                    boundingBox.Y = (RG->get_start().GetY() - radius) * s;
+                    boundingBox.Width = radius*2*s;
+                    boundingBox.Height = radius*2*s;
                     path.AddEllipse(boundingBox);
                 }
-                else if(dynamic_cast <Shapes::Ellipse*> (obj)){
-                    path.AddEllipse(boundingBox);
-                }
-                else if(Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj)){
-                    path.AddPath(&PG->getPath(), true);
-                }
-                else if(Shapes::Polyline* PL = dynamic_cast <Shapes::Polyline*> (obj)){
-                    for(int i = 0; i < PL->getPoints().size() - 1; i++){
-                        path.AddLine(PointF(PL->getPoints()[i].GetX(), PL->getPoints()[i].GetY()), PointF(PL->getPoints()[i+1].GetX(), PL->getPoints()[i+1].GetY()));
+                else{
+                    obj->setBoundingBox(boundingBox);
+                    boundingBox.X*=s; boundingBox.Y*=s; boundingBox.Width*=s; boundingBox.Height*=s;
+                    if(dynamic_cast <Shapes::Rectangle*> (obj)){
+                        path.AddRectangle(boundingBox);
                     }
-                }
-                else if(Shapes::Text* T = dynamic_cast <Shapes::Text*> (obj)){
-                    path.AddPath(&T->getPath(), true);
-                }else if(Shapes::Path* P = dynamic_cast <Shapes::Path*> (obj)){
-                    path.AddPath(&P->getPath(), true);
+                    else if(dynamic_cast <Shapes::Circle*> (obj)){
+                        path.AddEllipse(boundingBox);
+                    }
+                    else if(dynamic_cast <Shapes::Ellipse*> (obj)){
+                        path.AddEllipse(boundingBox);
+                    }
+                    else if(Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj)){
+                        path.AddPath(&PG->getPath(), true);
+                    }
+                    else if(Shapes::Polyline* PL = dynamic_cast <Shapes::Polyline*> (obj)){
+                        for(int i = 0; i < PL->getPoints().size() - 1; i++){
+                            path.AddLine(PointF(PL->getPoints()[i].GetX(), PL->getPoints()[i].GetY()), PointF(PL->getPoints()[i+1].GetX(), PL->getPoints()[i+1].GetY()));
+                        }
+                    }
+                    else if(Shapes::Text* T = dynamic_cast <Shapes::Text*> (obj)){
+                        path.AddPath(&T->getPath(), true);
+                    }else if(Shapes::Path* P = dynamic_cast <Shapes::Path*> (obj)){
+                        path.AddPath(&P->getPath(), true);
+                    }
                 }
                 RG->setBrush(path, rgb, alpha, s);
             }
