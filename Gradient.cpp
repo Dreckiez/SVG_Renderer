@@ -65,7 +65,6 @@ bool Gradient::getIsBoundingBox(){
 void LinearGradient::read(XMLElement* gradientElem){
     int idx;
     set_id(gradientElem->Attribute("id"));
-    cout << get_id() << endl;
     // Set start and end pos;
     if(gradientElem->Attribute("x1")){
         float x1 = ConvertUnit(gradientElem->Attribute("x1")), y1 = ConvertUnit(gradientElem->Attribute("y1"));
@@ -272,34 +271,22 @@ void GradientVector::clear(){
     content.clear();
 }
 
-void Gradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor){
+void LinearGradient::setTransform(Gdiplus::LinearGradientBrush* gb, float s){
     string type, para;
     float translate_x = 0, translate_y = 0, rotate = 0, scale_x = 1, scale_y = 1;
     stringstream ss(Transform);
     while(getline(ss, type, '(')){
+        removeSpareSpaces(type);
         if(type == "translate"){
             getline(ss, para, ')');
-            int size = para.length();
-            string number_string;
-            for(int i = 0; i < size; i++){
-                if(para[i] != ',' && para[i] != ' '){
-                    number_string += para[i];
-                }
-                else if(translate_x == 0){
-                    translate_x = stof(number_string);
-                    number_string = "";
-                    if(para[i+1] == ' ' || para[i+1] == ','){
-                        i++;
-                    }
-                }
-                if(i == size-1){
-                    translate_y = stof(number_string);
-                }
-            }
-            getline(ss, para, ' ');
+            addSpaces(para);
+            removeSpareSpaces(para);
+            stringstream ssPara(para);
+            ssPara >> translate_x >> translate_y;
             translate_x*=s;
             translate_y*=s;
-            gb->TranslateTransform(-translate_x/3.3, -translate_y/3.3);
+            if(start.GetX() < end.GetX())   gb->TranslateTransform(translate_x, translate_y);
+            else gb->TranslateTransform(-translate_x/2, -translate_y/2);
             translate_x = 0;
             translate_y = 0;
         }
@@ -398,6 +385,7 @@ void LinearGradient::setBrush(Shapes::Object* obj, Gdiplus::LinearGradientBrush*
     int stops_amount = get_amount();
     addStops(stops_amount, alpha, color_array, stop_array);
     gb->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
+    setTransform(gb,s);
     gb->SetInterpolationColors(color_array, stop_array, stops_amount);
 }
 
@@ -425,9 +413,8 @@ void RadialGradient::setBrush(GraphicsPath& path, Gdiplus::PathGradientBrush*& r
     int stops_amount = amount;
     addStops(stops_amount, alpha, color_array, stop_array);
     rgb->SetCenterColor(colors[0]); 
-    cout << stops_amount << endl;
     rgb->SetSurroundColors(color_array, &stops_amount);
-    rgb->SetWrapMode(Gdiplus::WrapModeTileFlipXY);
+    rgb->SetWrapMode(Gdiplus::WrapModeTileFlipX);
     rgb->SetInterpolationColors(color_array, stop_array, stops_amount);
 }
 
@@ -437,7 +424,6 @@ void RadialGradient::addStops(int& stops_amount, float alpha, Gdiplus::Color col
         Gdiplus::Color c(opacity, colors[i+1].GetRed(), colors[i+1].GetGreen(), colors[i+1].GetBlue());
         color_array[i] = c;
         stop_array[i] = stops[i];
-        cout <<endl << (int)colors[i].GetRed() << " " << (int) colors[i].GetGreen() << " " <<(int) colors[i].GetBlue() << endl;
     }
     stops_amount--;
 }

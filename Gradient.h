@@ -26,7 +26,6 @@ public:
     Gdiplus::Color* get_colors();
     void virtual read(XMLElement* gradientElem) = 0;
     bool getIsBoundingBox();
-    void setTransform(Gdiplus::LinearGradientBrush* gb, float s, Gdiplus::PointF anchor);
     Shapes::Point& get_end();
     void set_end(Shapes::Point p);
     virtual void addStops(int& stops_amount, float alpha, Gdiplus::Color color_array[50], float stop_array[50]);
@@ -36,11 +35,13 @@ class LinearGradient : public Gradient{
 public:
     void read(XMLElement* gradientElem) override;
     void setBrush(Shapes::Object* obj, Gdiplus::LinearGradientBrush*& gb, float alpha, float s);
+    void setTransform(Gdiplus::LinearGradientBrush* gb, float s);
 };
 
 class RadialGradient : public Gradient{
 private:
     float radius;
+    string spreadMethod;
 public:
     void read(XMLElement* gradientElem) override;
     float get_radius();

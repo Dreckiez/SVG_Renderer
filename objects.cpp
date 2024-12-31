@@ -77,7 +77,6 @@ void Shapes::RGBA::SetRGB(string s){
         if(s.find("url(#") != string::npos){
             int start = s.find("#") + 1, end = s.size() - 1;
             gradient_name = s.substr(start, end - start);
-            cout << gradient_name << "*" << endl;
             return;
         }
         // HEX CODE format
@@ -238,8 +237,6 @@ void Shapes::Object::SetAttribute(XMLElement* E){
     }
      
     if (S != nullptr){
-        string temp = S;
-        toLowerCase(temp);
         SetStrokeAlpha(1);
         SetStroke(S);
     }
@@ -330,7 +327,6 @@ void Shapes::Object::setTransform(Gdiplus::Matrix& M, float s, Gdiplus::PointF a
             removeSpareSpaces(para);
             stringstream ssPara(para);
             ssPara >> translate_x >> translate_y;
-            cout << para << " " << translate_x << " " << translate_y << endl;
             translate_x*=s;
             translate_y*=s;
             M.Translate(translate_x, translate_y);

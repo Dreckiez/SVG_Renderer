@@ -84,17 +84,17 @@ void Drawer::setGradientBrush(Shapes::Object* obj){
             }
             if(RadialGradient* RG = dynamic_cast<RadialGradient*> (gradientList.get_content()[i])){
                 Gdiplus::GraphicsPath path;
-                if(Shapes::Rectangle* R = dynamic_cast <Shapes::Rectangle*> (obj)){
-                    Gdiplus::RectF r(R->getPoint().GetX(), R->getPoint().GetY(), R->getWidth(), R->getHeight());
-                    path.AddRectangle(r);
+                Gdiplus::RectF boundingBox;
+                obj->setBoundingBox(boundingBox);
+                boundingBox.X*=s; boundingBox.Y*=s; boundingBox.Width*=s; boundingBox.Height*=s;
+                if(dynamic_cast <Shapes::Rectangle*> (obj)){
+                    path.AddRectangle(boundingBox);
                 }
-                else if(Shapes::Circle* C = dynamic_cast <Shapes::Circle*> (obj)){
-                    Gdiplus::RectF r(C->getCenter().GetX() - C->getRadius(), C->getCenter().GetY() - C->getRadius(), C->getRadius()*2, C->getRadius()*2);
-                    path.AddEllipse(r);
+                else if(dynamic_cast <Shapes::Circle*> (obj)){
+                    path.AddEllipse(boundingBox);
                 }
-                else if(Shapes::Ellipse* E = dynamic_cast <Shapes::Ellipse*> (obj)){
-                    Gdiplus::RectF r((E->getCenter().GetX() - E->getRadiusX()), (E->getCenter().GetY() - E->getRadiusY()), E->getRadiusX()*2, E->getRadiusY()*2);
-                    path.AddEllipse(r);
+                else if(dynamic_cast <Shapes::Ellipse*> (obj)){
+                    path.AddEllipse(boundingBox);
                 }
                 else if(Shapes::Polygon* PG = dynamic_cast <Shapes::Polygon*> (obj)){
                     path.AddPath(&PG->getPath(), true);
@@ -114,7 +114,7 @@ void Drawer::setGradientBrush(Shapes::Object* obj){
             return;
         }
     }
-    gb = new Gdiplus::LinearGradientBrush(Gdiplus::Rect(0, 0, 1000, 1000), Gdiplus::Color(255, 0, 0), Gdiplus::Color(0, 0, 0), Gdiplus::LinearGradientModeHorizontal);
+    gb = new Gdiplus::LinearGradientBrush(Gdiplus::Rect(0, 0, 1000, 1000), Gdiplus::Color(255, 0, 0), Gdiplus::Color(0, 0, 255), Gdiplus::LinearGradientModeHorizontal);
 }
 
 void Drawer::FillRectGradient(Shapes::Rectangle* R){
